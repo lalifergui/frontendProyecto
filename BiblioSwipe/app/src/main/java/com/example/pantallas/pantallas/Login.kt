@@ -26,8 +26,10 @@ class Login : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // Muestra tu pantalla aquí cuando ejecutes la app
-            LoginScreen()
+           //mostrar pantalla al iniciar la app
+            LoginScreen(
+
+            )
         }
     }
 }
