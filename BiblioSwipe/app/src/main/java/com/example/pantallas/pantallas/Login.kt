@@ -41,7 +41,7 @@ fun LoginScreen(
     onRegisterClick: () -> Unit = {}
 ) {
     // Estado de los campos de texto
-    var email by remember { mutableStateOf("") }
+    var usuario by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     // Layout principal
@@ -63,8 +63,8 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(40.dp))
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = usuario,
+            onValueChange = { usuario = it },
             label = { Text("Usuario") },
             modifier = Modifier.fillMaxWidth()
         )
