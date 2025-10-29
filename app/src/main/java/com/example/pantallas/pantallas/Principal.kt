@@ -10,16 +10,23 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,7 +47,9 @@ class Principal : ComponentActivity() {
 }
 
 @Composable
-fun PrincipalScreen() {
+fun PrincipalScreen(
+
+) {
     val context = LocalContext.current
     var nombre by remember { mutableStateOf("") }
 
@@ -48,7 +57,8 @@ fun PrincipalScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(26.dp),
+            .padding(horizontal = 24.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(50.dp))
@@ -68,7 +78,67 @@ fun PrincipalScreen() {
                         color = Color.Black,
                         shape = RoundedCornerShape(8.dp)
                     )
-            )
+            ){
+                //Dentro de la caja principal
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .height(80.dp)
+                        .align(Alignment.BottomCenter)
+                        //para que quede por encima del borde
+                        .offset(y=(-12).dp)
+                        .padding(horizontal = 16.dp)
+                        .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
+                        .border(1.dp, Color.Black, shape = RoundedCornerShape(8.dp)),
+                    contentAlignment = Alignment.CenterStart
+                ){
+                    Row (
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        TextButton (
+                            onClick = {
+                                val intent = Intent(context, Favoritos::class.java)
+                                context.startActivity(intent)
+                            },
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .height(60.dp)
+                        ) {
+
+                                Icon(
+                                    imageVector = Icons.Filled.CheckCircle,
+                                    contentDescription = "Me gusta",
+                                    tint = Color.Green,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        TextButton(
+                            onClick = {
+                                val intent = Intent(context, Principal::class.java)
+                                context.startActivity(intent) },
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .height(60.dp)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = "No me gusta",
+                                    tint = Color.Red,
+                                    modifier = Modifier.size(66.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
+                        }
+
+                    }
+                }
+
+            }
 
             // Título
             Text(
@@ -79,7 +149,7 @@ fun PrincipalScreen() {
                     .align(Alignment.TopCenter)
                     .background(Color.White)
                     .padding(start = 12.dp, end = 12.dp)
-                    .offset(y = (-10).dp)
+
             )
 
             // Campo de texto interno (placeholder)
