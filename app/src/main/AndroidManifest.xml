@@ -14,7 +14,7 @@
 
         <!-- 🔹 Pantalla principal -->
         <activity
-            android:name=".MainActivity"
+            android:name=".pantallas.Principal"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Pantallas">
@@ -34,9 +34,9 @@
         <activity
             android:name=".pantallas.Registrar"
             android:exported="true" />
-        <!--Pantalla principal -->
+        <!--Pantalla favoritos -->
         <activity
-            android:name=".pantallas.Principal"
+            android:name=".pantallas.Favoritos"
             android:exported="true" />
         <!--Perfil -->
         <activity

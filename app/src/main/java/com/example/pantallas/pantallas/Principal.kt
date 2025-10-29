@@ -115,13 +115,23 @@ fun PrincipalScreen() {
                     imageVector = Icons.Filled.Home,
                     contentDescription = "Casa",
                     tint = Color.Black,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clickable {
+                            val intent = Intent(context, Principal::class.java)
+                            context.startActivity(intent)
+                        }
                 )
                 Icon(
                     imageVector = Icons.Filled.FavoriteBorder,
                     contentDescription = "Match",
                     tint = Color.Black,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clickable {
+                            val intent = Intent(context, Favoritos::class.java)
+                            context.startActivity(intent)
+                        }
                 )
                 Icon(
                     imageVector = Icons.Filled.Star,

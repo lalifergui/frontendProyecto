@@ -33,7 +33,7 @@ class Perfil : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             // Muestra tu pantalla aquí cuando ejecutes la app
-            RegistroScreen()
+            PerfilAnyadir ()
         }
     }
 }
