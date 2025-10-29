@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
@@ -134,7 +135,24 @@ fun PerfilAnyadir(
                     .fillMaxWidth()
                     .padding(start = 24.dp, top = 20.dp, bottom = 600.dp)
                     .align(Alignment.CenterStart)
-            )
+            ){
+                Row (
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ){
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = "Editar",
+                        tint = Color.Black,
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clickable {
+                                val intent = Intent(context, EditarPerfil::class.java)
+                                context.startActivity(intent)
+                            }
+                    )
+                }
+            }
         }
         Spacer(modifier = Modifier.height(24.dp))
         Box(

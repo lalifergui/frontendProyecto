@@ -43,6 +43,13 @@
             android:name=".pantallas.Perfil"
             android:exported="true" />
 
+        <!--Editar Perfil -->
+        <activity
+            android:name=".pantallas.EditarPerfil"
+            android:exported="true" />
+
+
+
     </application>
 
 </manifest>
