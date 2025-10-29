@@ -22,9 +22,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.Star
+//import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
@@ -106,12 +105,17 @@ fun PrincipalScreen(
                                 .height(60.dp)
                         ) {
 
-                                Icon(
-                                    imageVector = Icons.Filled.CheckCircle,
-                                    contentDescription = "Me gusta",
-                                    tint = Color.Green,
-                                    modifier = Modifier.size(32.dp)
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Start
+                                ){
+                                    Icon(
+                                        imageVector = Icons.Filled.CheckCircle,
+                                        contentDescription = "Me gusta",
+                                        tint = Color.Green,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                }
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         TextButton(
@@ -203,12 +207,14 @@ fun PrincipalScreen(
                             context.startActivity(intent)
                         }
                 )
-                Icon(
-                    imageVector = Icons.Filled.Star,
-                    contentDescription = "LibrosGuardados",
-                    tint = Color.Black,
-                    modifier = Modifier.size(48.dp)
-                )
+                /**
+                 * Icon(
+                 *                     imageVector = Icons.Filled.Star,
+                 *                     contentDescription = "LibrosGuardados",
+                 *                     tint = Color.Black,
+                 *                     modifier = Modifier.size(48.dp)
+                 *                 )
+                 */
                 Icon(
                     imageVector = Icons.Filled.MailOutline,
                     contentDescription = "Chat",
