@@ -14,7 +14,7 @@
 
         <!-- 🔹 Pantalla principal -->
         <activity
-            android:name=".pantallas.Principal"
+            android:name=".ui.principal.Principal"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Pantallas">
@@ -26,27 +26,28 @@
 
         <!--Login -->
         <activity
-            android:name=".pantallas.Login"
+            android:name=".ui.login.Login"
             android:exported="true" />
 
 
         <!--Registro -->
         <activity
-            android:name=".pantallas.Registrar"
+            android:name=".ui.registro.Registrar"
             android:exported="true" />
         <!--Pantalla favoritos -->
         <activity
-            android:name=".pantallas.Favoritos"
+            android:name=".ui.favoritos.Favoritos"
             android:exported="true" />
         <!--Perfil -->
         <activity
-            android:name=".pantallas.Perfil"
+            android:name=".ui.perfil.Perfil"
             android:exported="true" />
 
         <!--Editar Perfil -->
         <activity
-            android:name=".pantallas.EditarPerfil"
+            android:name=".ui.editarPerfil.EditarPerfil"
             android:exported="true" />
+
 
 
 

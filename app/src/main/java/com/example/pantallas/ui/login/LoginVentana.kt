@@ -1,4 +1,4 @@
-package com.example.pantallas.pantallas
+package com.example.pantallas.ui.login
 
 import android.content.Intent
 import android.os.Bundle
@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.pantallas.ui.registro.Registrar
 
 class Login : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

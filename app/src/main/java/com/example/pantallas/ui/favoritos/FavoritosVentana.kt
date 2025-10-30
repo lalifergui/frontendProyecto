@@ -1,4 +1,4 @@
-package com.example.pantallas.pantallas
+package com.example.pantallas.ui.favoritos
 
 import android.content.Intent
 import android.os.Bundle
@@ -44,6 +44,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.pantallas.ui.perfil.Perfil
+import com.example.pantallas.ui.principal.Principal
 
 class Favoritos : ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {

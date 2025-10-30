@@ -1,4 +1,4 @@
-package com.example.pantallas.pantallas
+package com.example.pantallas.ui.principal
 
 import android.content.Intent
 import androidx.compose.ui.graphics.Color
@@ -34,6 +34,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.pantallas.ui.favoritos.Favoritos
+import com.example.pantallas.ui.perfil.Perfil
 
 class Principal : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

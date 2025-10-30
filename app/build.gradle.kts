@@ -49,6 +49,15 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    //retrofit --> librería principal
+    implementation(libs.retrofit)
+    //convert-gson --> para convertir automáticamente JSON a objetos kotlin y viceversa
+    implementation(libs.converter.gson)
+    //para el icono del ojo de la contraseña
+    implementation("androidx.compose.material:material-icons-extended:1.6.0")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
+    implementation(libs.androidx.compose.animation.core.lint)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
