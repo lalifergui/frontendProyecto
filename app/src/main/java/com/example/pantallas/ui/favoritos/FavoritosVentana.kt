@@ -44,8 +44,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.pantallas.ui.perfil.Perfil
+import com.example.pantallas.pantallas.Perfil
+
+
 import com.example.pantallas.ui.principal.Principal
+import com.example.pantallas.util.Menu
 
 class Favoritos : ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,13 +81,13 @@ fun PantallaFavoritos(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
 
-        ){
+        ) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
                     .border(
                         width = 1.dp,
-                        color= Color.White,
+                        color = Color.White,
                         shape = RoundedCornerShape(8.dp)
                     )
             )
@@ -93,7 +96,7 @@ fun PantallaFavoritos(
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .align (Alignment.TopCenter)
+                    .align(Alignment.TopCenter)
                     .padding(start = 12.dp, end = 12.dp)
 
 
@@ -110,69 +113,7 @@ fun PantallaFavoritos(
             )
         }
         Spacer(modifier = Modifier.height(24.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(80.dp)
-                .padding(horizontal = 16.dp)
-                .background(Color.LightGray, shape = RoundedCornerShape(8.dp)),
-            contentAlignment = Alignment.Center
-
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(0.9f)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Home,
-                    contentDescription = "Casa",
-                    tint = Color.Black,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clickable {
-                            val intent = Intent(context, Principal::class.java)
-                            context.startActivity(intent)
-                        }
-                )
-                Icon(
-                    imageVector = Icons.Filled.FavoriteBorder,
-                    contentDescription = "Match",
-                    tint = Color.Black,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clickable {
-                            val intent = Intent(context, Favoritos::class.java)
-                            context.startActivity(intent)
-                        }
-                )
-                Icon(
-                    imageVector = Icons.Filled.Star,
-                    contentDescription = "LibrosGuardados",
-                    tint = Color.Black,
-                    modifier = Modifier.size(48.dp)
-                )
-                Icon(
-                    imageVector = Icons.Filled.MailOutline,
-                    contentDescription = "Chat",
-                    tint = Color.Black,
-                    modifier = Modifier.size(48.dp)
-                )
-                Icon(
-                    imageVector = Icons.Filled.AccountCircle,
-                    contentDescription = "Perfil",
-                    tint = Color.Black,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clickable {
-                            val intent = Intent(context, Perfil::class.java)
-                            context.startActivity(intent)
-                        }
-                )
-            }
-
-
-        }
+        Menu(context)
     }
 }
 @Preview(showBackground = true, showSystemUi = true)

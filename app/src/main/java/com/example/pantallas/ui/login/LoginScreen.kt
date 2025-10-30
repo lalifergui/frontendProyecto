@@ -21,34 +21,44 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.ui.registro.Registrar
+
+
 
 class Login : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-           //mostrar pantalla al iniciar la app
-            LoginScreen(
-                //para que funcione el texto de registrate ahora
-                onRegisterClick = {
-                    val intento= Intent(this, Registrar::class.java)
-                    startActivity(intento)
-                }
-            )
+           PantallaLogin(
+               //para que funcione el texto de reggit commitistrate ahora
+               onRegisterClick = {
+                   val intento= Intent(this, Registrar::class.java)
+                   startActivity(intento)
+               }
+           )
         }
     }
 }
-
+@Composable
+fun PantallaLogin(
+    viewModel: LoginViewModel = viewModel(),
+    onLoginClick: () -> Unit = {},
+    onForgotPasswordClick: () -> Unit = {},
+    onRegisterClick: () -> Unit = {}){
+    LoginScreen(viewModel,onLoginClick,onForgotPasswordClick,onRegisterClick)
+}
 @Composable
 fun LoginScreen(
+    viewModel: LoginViewModel=viewModel(),
     onLoginClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {},
     onRegisterClick: () -> Unit = {}
 ) {
     // Estado de los campos de texto
-    var usuario by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val usuario by viewModel.usuario.collectAsState()
+    val password by viewModel.password.collectAsState()
 
     // Layout principal
     Column(
@@ -70,7 +80,7 @@ fun LoginScreen(
 
         OutlinedTextField(
             value = usuario,
-            onValueChange = { usuario = it },
+            onValueChange = {viewModel.actualizarUsuario(it)},
             label = { Text("Usuario") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -79,7 +89,7 @@ fun LoginScreen(
 
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { viewModel.actualizarPassword(it)},
             label = { Text("Contraseña") },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
@@ -126,5 +136,5 @@ fun LoginScreen(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewLoginScreen() {
-    LoginScreen()
+    PantallaLogin()
 }

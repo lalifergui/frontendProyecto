@@ -52,6 +52,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat.enableEdgeToEdge
+import com.example.pantallas.ui.favoritos.Favoritos
+import com.example.pantallas.ui.principal.Principal
+import com.example.pantallas.util.Menu
 
 class Perfil : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -155,69 +158,7 @@ fun PerfilAnyadir(
             }
         }
         Spacer(modifier = Modifier.height(24.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(80.dp)
-                .padding(horizontal = 16.dp)
-                .background(Color.LightGray, shape = RoundedCornerShape(8.dp)),
-            contentAlignment = Alignment.Center
-
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(0.9f)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Home,
-                    contentDescription = "Casa",
-                    tint = Color.Black,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clickable {
-                            val intent = Intent(context, Principal::class.java)
-                            context.startActivity(intent)
-                        }
-                )
-                Icon(
-                    imageVector = Icons.Filled.FavoriteBorder,
-                    contentDescription = "Match",
-                    tint = Color.Black,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clickable {
-                            val intent = Intent(context, Favoritos::class.java)
-                            context.startActivity(intent)
-                        }
-                )
-                Icon(
-                    imageVector = Icons.Filled.Star,
-                    contentDescription = "LibrosGuardados",
-                    tint = Color.Black,
-                    modifier = Modifier.size(48.dp)
-                )
-                Icon(
-                    imageVector = Icons.Filled.MailOutline,
-                    contentDescription = "Chat",
-                    tint = Color.Black,
-                    modifier = Modifier.size(48.dp)
-                )
-                Icon(
-                    imageVector = Icons.Filled.AccountCircle,
-                    contentDescription = "Perfil",
-                    tint = Color.Black,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clickable {
-                            val intent = Intent(context, Perfil::class.java)
-                            context.startActivity(intent)
-                        }
-                )
-            }
-
-
-        }
+        Menu(context)
     }
 }
 
