@@ -12,5 +12,5 @@ interface LibroApi {
     fun getLibros(): Call<List<Libro>>
 
     @POST("libros")
-    fun crearLibros(@Body libro: Libro): Call<Libro>
+    fun crearLibro(@Body libro: Libro): Call<Libro>
 }

@@ -7,5 +7,5 @@ class LibroRepositorio {
     private val api = RetrofitClient.instance.create(LibroApi::class.java)
 
     fun getLibros(): Call<List<Libro>> = api.getLibros()
-    fun crearLibros(libro: Libro): Call<Libro> = api.crearLibros(libro)
+    fun crearLibro(libro: Libro): Call<Libro> = api.crearLibro(libro)
 }

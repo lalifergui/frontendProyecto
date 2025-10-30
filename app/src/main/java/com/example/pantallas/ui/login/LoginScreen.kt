@@ -25,33 +25,35 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.ui.registro.Registrar
 
 
-
 class Login : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-           PantallaLogin(
-               //para que funcione el texto de reggit commitistrate ahora
-               onRegisterClick = {
-                   val intento= Intent(this, Registrar::class.java)
-                   startActivity(intento)
-               }
-           )
+            PantallaLogin(
+                //para que funcione el texto de reggit commitistrate ahora
+                onRegisterClick = {
+                    val intento = Intent(this, Registrar::class.java)
+                    startActivity(intento)
+                }
+            )
         }
     }
 }
+
 @Composable
 fun PantallaLogin(
     viewModel: LoginViewModel = viewModel(),
     onLoginClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {},
-    onRegisterClick: () -> Unit = {}){
-    LoginScreen(viewModel,onLoginClick,onForgotPasswordClick,onRegisterClick)
+    onRegisterClick: () -> Unit = {}
+) {
+    LoginScreen(viewModel, onLoginClick, onForgotPasswordClick, onRegisterClick)
 }
+
 @Composable
 fun LoginScreen(
-    viewModel: LoginViewModel=viewModel(),
+    viewModel: LoginViewModel = viewModel(),
     onLoginClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {},
     onRegisterClick: () -> Unit = {}
@@ -80,7 +82,7 @@ fun LoginScreen(
 
         OutlinedTextField(
             value = usuario,
-            onValueChange = {viewModel.actualizarUsuario(it)},
+            onValueChange = { viewModel.actualizarUsuario(it) },
             label = { Text("Usuario") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -89,7 +91,7 @@ fun LoginScreen(
 
         OutlinedTextField(
             value = password,
-            onValueChange = { viewModel.actualizarPassword(it)},
+            onValueChange = { viewModel.actualizarPassword(it) },
             label = { Text("Contraseña") },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()

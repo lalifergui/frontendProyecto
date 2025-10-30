@@ -49,6 +49,11 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    // OkHttp
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
+    // Logging interceptor
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+
     //retrofit --> librería principal
     implementation(libs.retrofit)
     //convert-gson --> para convertir automáticamente JSON a objetos kotlin y viceversa
