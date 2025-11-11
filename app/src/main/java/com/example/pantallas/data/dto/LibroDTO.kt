@@ -1,4 +1,4 @@
-package com.example.pantallas.dtos
+package com.example.pantallas.data.dto
 
 data class LibroDTO(
     val id: Long? = null,

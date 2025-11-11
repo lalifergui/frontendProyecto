@@ -1,5 +1,7 @@
-package com.example.pantallas.api
+package com.example.pantallas.data.repositorios
 
+import com.example.pantallas.api.LibroApi
+import com.example.pantallas.api.RetrofitClient
 import com.example.pantallas.modelos.Libro
 import retrofit2.Call
 

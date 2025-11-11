@@ -7,9 +7,11 @@ import androidx.activity.enableEdgeToEdge
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -143,7 +145,33 @@ fun RegistroScreen(
         }
     }
 }
-
+@Composable
+fun MiTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    isError: Boolean,
+    errorMessage: String,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    leadingIcon: (@Composable (() -> Unit))? = null,
+){
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        isError = isError,
+        keyboardOptions = keyboardOptions,
+        leadingIcon=leadingIcon
+    )
+    if (isError) {
+        Text(
+            text = errorMessage,
+            color = MaterialTheme.colorScheme.error,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+        )
+    }
+}
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewRegistroScreen() {

@@ -10,6 +10,7 @@ object RetrofitClient {
      *
      * private const val BASE_URL = "http://192.168.1.50:8080/"
      */
+    //si usamos el móvil físico debemos usar la IP local
     private const val BASE_URL = "http://10.0.2.2:8080/" // cambia al endpoint real
 
     val instance: Retrofit by lazy {
@@ -17,5 +18,9 @@ object RetrofitClient {
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+    }
+    //agregamos loginApi para no tener que crear la instancia
+    val loginApi: LoginApi by lazy {
+        instance.create(LoginApi::class.java)
     }
 }

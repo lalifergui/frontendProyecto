@@ -1,4 +1,4 @@
-package com.example.pantallas.dtos
+package com.example.pantallas.data.dto
 
 data class BibliotecaDTO(
     val id: Long? = null,
