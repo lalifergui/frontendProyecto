@@ -5,24 +5,36 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Password
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.ui.registro.Registrar
+import com.example.pantallas.R
 
 
 class Login : ComponentActivity() {
@@ -59,9 +71,12 @@ fun LoginScreen(
     onRegisterClick: () -> Unit = {}
 ) {
     // Estado de los campos de texto
-    val usuario by viewModel.usuario.collectAsState()
-    val password by viewModel.password.collectAsState()
+    val login by viewModel.login.collectAsState()
 
+    var passwordVisible by remember { mutableStateOf(false) }
+    val botonHabilitado by viewModel.botonHabilitado.collectAsState(initial = false)
+    val errorUsuario by viewModel.errorUsuario.collectAsState()
+    val errorPassword by viewModel.errorPassword.collectAsState()
     // Layout principal
     Column(
         modifier = Modifier
@@ -70,6 +85,14 @@ fun LoginScreen(
             .verticalScroll(rememberScrollState()), // permite scroll si la pantalla es pequeña
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(25.dp))
+        Image(
+            painter = painterResource(id= R.drawable.biblio),
+            contentDescription = "Logo biblioswipe",
+            modifier = Modifier
+                .height(150.dp)
+                .width(150.dp)
+        )
         Spacer(modifier = Modifier.height(50.dp))
 
         Text(
@@ -80,27 +103,51 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        OutlinedTextField(
-            value = usuario,
-            onValueChange = { viewModel.actualizarUsuario(it) },
-            label = { Text("Usuario") },
-            modifier = Modifier.fillMaxWidth()
+        MiTextField(
+            value = login.usuario,
+            onValueChange = { nuevoEmail -> viewModel.actualizarLogin(login.copy(usuario = nuevoEmail)) },
+            label = "Email",
+
+            isError = errorUsuario,
+            leadingIcon = {Icon(Icons.Default.Email, contentDescription = "Icono Email")},
+            errorMessage= "Usuario inválido, ingrese un email correcto."
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = password,
-            onValueChange = { viewModel.actualizarPassword(it) },
+            value = login.password,
+            onValueChange = { nuevoPassword -> viewModel.actualizarLogin(login.copy(password = nuevoPassword))},
             label = { Text("Contraseña") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            visualTransformation = if(passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                val image=if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                Icon(
+                    imageVector = image,
+                    contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                    modifier = Modifier.clickable { passwordVisible = !passwordVisible }
+
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            isError = errorPassword, // usamos el estado de vm
+            leadingIcon = {Icon(Icons.Default.Password, contentDescription = "Icono Contraseña")},
+            singleLine = true,
+            supportingText = {
+                if(errorPassword){
+                    Text(
+                        text = "Contraseña inválida.",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
             onClick = onLoginClick,
+            enabled = botonHabilitado,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Text("Log in")
@@ -130,6 +177,35 @@ fun LoginScreen(
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.clickable { onRegisterClick() }
+        )
+    }
+}
+@Composable
+fun MiTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    isError: Boolean,
+    errorMessage: String,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    leadingIcon: (@Composable (() -> Unit))? = null,
+
+    ) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        keyboardOptions = keyboardOptions,
+        isError=isError,
+        leadingIcon=leadingIcon,
+        modifier = Modifier.fillMaxWidth()
+    )
+    if (isError) {
+        Text(
+            text = errorMessage,
+            color = MaterialTheme.colorScheme.error,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
         )
     }
 }
