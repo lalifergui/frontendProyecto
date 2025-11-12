@@ -15,7 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+//import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 //import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
@@ -25,12 +25,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.pantallas.ui.favoritos.Favoritos
 import com.example.pantallas.util.Menu
+import com.example.pantallas.R
 
 
 class Principal : ComponentActivity() {
@@ -108,10 +110,10 @@ fun PrincipalScreen(
                                     horizontalArrangement = Arrangement.Start
                                 ){
                                     Icon(
-                                        imageVector = Icons.Filled.CheckCircle,
+                                        painter= painterResource(id = R.drawable.libro_tick),
                                         contentDescription = "Me gusta",
-                                        tint = Color.Green,
-                                        modifier = Modifier.size(32.dp)
+                                        tint = Color.Unspecified,
+                                        modifier = Modifier.size(80.dp)
                                     )
                                 }
                         }
@@ -128,10 +130,10 @@ fun PrincipalScreen(
                                 horizontalArrangement = Arrangement.End
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.Close,
+                                    painter= painterResource(id = R.drawable.libro_x),
                                     contentDescription = "No me gusta",
-                                    tint = Color.Red,
-                                    modifier = Modifier.size(66.dp)
+                                    tint = Color.Unspecified,
+                                    modifier = Modifier.size(80.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                             }
@@ -144,7 +146,7 @@ fun PrincipalScreen(
 
             // Título
             Text(
-                text = "Biblio-Swipe",
+                text = "BIBLIO-SWIPE",
                 color = Color.Black,
                 fontSize = 30.sp,
                 modifier = Modifier

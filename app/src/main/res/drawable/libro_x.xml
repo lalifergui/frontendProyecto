@@ -1,0 +1,39 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+
+    <!-- Libro (igual que antes) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#111827"
+        android:strokeWidth="1.6"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round"
+        android:pathData="M6,18c6,-4,18,-6,26,-1 8,-5,20,-3,26,1v28c-6,-3.5,-18,-6,-26,-1 -8,-5,-20,-1.5,-26,1z" />
+
+    <path
+        android:strokeColor="#111827"
+        android:strokeWidth="1.6"
+        android:pathData="M32,17.5v28.5" />
+
+    <!-- Círculo rojo arriba a la derecha -->
+    <group
+        android:translateX="34"
+        android:translateY="8">
+        <path
+            android:fillColor="#FEF2F2"
+            android:strokeColor="#DC2626"
+            android:strokeWidth="1.4"
+            android:pathData="M0,9a9,9 0,1 1,0,-18a9,9 0,1 1,0,18z" />
+
+        <!-- X roja -->
+        <path
+            android:strokeColor="#DC2626"
+            android:strokeWidth="2.4"
+            android:strokeLineCap="round"
+            android:pathData="M-4,-1 L4,7 M4,-1 L-4,7" />
+    </group>
+
+</vector>

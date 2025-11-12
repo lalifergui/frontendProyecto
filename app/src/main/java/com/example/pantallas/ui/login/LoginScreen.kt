@@ -93,7 +93,7 @@ fun LoginScreen(
                 .height(150.dp)
                 .width(150.dp)
         )
-        Spacer(modifier = Modifier.height(50.dp))
+        Spacer(modifier = Modifier.height(25.dp))
 
         Text(
             text = "Log in",
@@ -163,7 +163,7 @@ fun LoginScreen(
             modifier = Modifier.clickable { onForgotPasswordClick() }
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         Text(
             text = "¿No eres miembro?",
@@ -178,6 +178,7 @@ fun LoginScreen(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.clickable { onRegisterClick() }
         )
+        Spacer(modifier = Modifier.height(50.dp))
     }
 }
 @Composable
