@@ -47,6 +47,10 @@
         <activity
             android:name=".ui.editarPerfil.EditarPerfil"
             android:exported="true" />
+        <!--Editar Biblioteca -->
+        <activity
+            android:name=".ui.editarBiblioteca.EditarBiblioteca"
+            android:exported="true" />
 
 
 

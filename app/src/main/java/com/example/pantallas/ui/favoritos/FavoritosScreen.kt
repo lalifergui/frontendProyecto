@@ -150,7 +150,7 @@ fun PantallaFavoritos(
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         // Menú de navegación inferior (asumo que es tu componente Menu)
         Menu(context)

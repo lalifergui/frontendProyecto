@@ -1,4 +1,5 @@
-package com.example.pantallas.ui.editarPerfil
+package com.example.pantallas.ui.editarBiblioteca
+
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -32,18 +33,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-class EditarPerfil : ComponentActivity(){
+class EditarBiblioteca : ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             // Muestra tu pantalla aquí cuando ejecutes la app
-            EditarPerfilVentana ()
+            EditarBibliotecaVentana ()
         }
     }
 }
 @Composable
-fun EditarPerfilVentana(
+fun EditarBibliotecaVentana(
     //una funcion no recibe parámetros y no devuelve nada
     onRegistrarClick: () -> Unit = {}
 ) {
@@ -74,7 +75,7 @@ fun EditarPerfilVentana(
                     )
             )
             Text(
-                text = "Editar Perfil",
+                text = "Editar Biblioteca",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
@@ -101,5 +102,5 @@ fun EditarPerfilVentana(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewRegistroScreenEditarPerfil() {
-    EditarPerfilVentana  ()
+    EditarBibliotecaVentana  ()
 }
