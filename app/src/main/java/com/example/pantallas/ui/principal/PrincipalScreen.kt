@@ -1,6 +1,6 @@
 package com.example.pantallas.ui.principal
 
-import android.content.Intent
+
 import androidx.compose.ui.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,32 +13,23 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-//import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.MenuBook
-//import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.pantallas.ui.favoritos.Favoritos
 import com.example.pantallas.util.Menu
 import com.example.pantallas.R
 import com.example.pantallas.ui.biblioteca.BibliotecaContenido
-import com.example.pantallas.ui.editarBiblioteca.EditarBiblioteca
+import com.example.pantallas.ui.biblioteca.BibliotecaViewModel // Importación lógica
 import com.example.pantallas.ui.perfil.PerfilViewModel
 import com.example.pantallas.util.CardPerfil
 
@@ -55,9 +46,15 @@ class Principal : ComponentActivity() {
 
 @Composable
 fun PrincipalScreen(
-    perfilViewModel: PerfilViewModel = viewModel()
+    //INTEGRACIÓN DE LOS TRES VIEWMODELS
+    principalViewModel: PrincipalViewModel = viewModel(),
+    perfilViewModel: PerfilViewModel = viewModel(),
+    bibliotecaViewModel: BibliotecaViewModel = viewModel()
 ) {
+    // OBTENCIÓN DE DATOS PARA LA LÓGICA Y VISUAL
     val perfilData = perfilViewModel.perfil
+    val libroActual = principalViewModel.libroActual
+    val usuarioTargetId = principalViewModel.bibliotecaActualId
     val context = LocalContext.current
 
     Column(
@@ -100,6 +97,7 @@ fun PrincipalScreen(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
+                // Asumimos que BibliotecaContenido usa @Composable y no necesita pasar el VM directamente
                 BibliotecaContenido()
             }
 
@@ -111,23 +109,36 @@ fun PrincipalScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // ICONO DISLIKE
                 Icon(
                     painter = painterResource(id = R.drawable.libro_x),
                     contentDescription = "No me gusta",
                     tint = Color.Unspecified,
-                    modifier = Modifier.size(50.dp)
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clickable {
+                            principalViewModel.dislikeLibro() // 🎯 LÓGICA CONECTADA
+                        }
                 )
 
+                // ICONO LIKE
                 Icon(
                     painter = painterResource(id = R.drawable.libro_tick),
                     contentDescription = "Me gusta",
                     tint = Color.Unspecified,
-                    modifier = Modifier.size(50.dp)
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clickable {
+                            // 🎯 LÓGICA CONECTADA
+                            libroActual?.let {
+                                principalViewModel.likeLibro(it, usuarioTargetId)
+                            }
+                        }
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(7.dp))
+        Spacer(modifier = Modifier.height(5.dp))
 
         // Menú fuera del borde
         Menu(context)
