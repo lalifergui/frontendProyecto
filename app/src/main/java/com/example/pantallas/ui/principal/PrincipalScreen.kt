@@ -37,6 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.ui.favoritos.Favoritos
 import com.example.pantallas.util.Menu
 import com.example.pantallas.R
+import com.example.pantallas.ui.biblioteca.BibliotecaContenido
 import com.example.pantallas.ui.editarBiblioteca.EditarBiblioteca
 import com.example.pantallas.ui.perfil.PerfilViewModel
 import com.example.pantallas.util.CardPerfil
@@ -63,81 +64,72 @@ fun PrincipalScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(horizontal = 24.dp)
-            .verticalScroll(rememberScrollState()),
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState())
+            .statusBarsPadding()
+            .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // --- TÍTULO ---
-        Text(
-            text = "BIBLIO-SWIPE",
-            color = Color.Black,
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // --- CARD PERFIL ---
-        CardPerfil(perfil = perfilData)
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // --- BOTÓN / ICONO EDITAR BIBLIOTECA ---
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Filled.MenuBook,
-                contentDescription = "Editar Biblioteca",
-                tint = Color.Black,
-                modifier = Modifier
-                    .size(36.dp)
-                    .clickable {
-                        val intent = Intent(context, EditarBiblioteca::class.java)
-                        context.startActivity(intent)
-                    }
-            )
-        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "Zona de la Biblioteca (Próximamente)",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold
+            text = "BIBLIO-SWIPE",
+            color = Color.Black,
+            fontSize = 25.sp,
+            fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(120.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // --- LIKE / DISLIKE ---
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
+        // --- Column con borde gris para todo el contenido de swipe ---
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(2.dp, Color.Gray, RoundedCornerShape(8.dp))
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.libro_x),
-                contentDescription = "No me gusta",
-                tint = Color.Unspecified,
-                modifier = Modifier.size(80.dp)
-            )
+            // Card del perfil
+            CardPerfil(perfil = perfilData)
 
-            Icon(
-                painter = painterResource(id = R.drawable.libro_tick),
-                contentDescription = "Me gusta",
-                tint = Color.Unspecified,
-                modifier = Modifier.size(80.dp)
-            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Contenido de la biblioteca
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                BibliotecaContenido()
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Iconos de acción
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.libro_x),
+                    contentDescription = "No me gusta",
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(50.dp)
+                )
+
+                Icon(
+                    painter = painterResource(id = R.drawable.libro_tick),
+                    contentDescription = "Me gusta",
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(50.dp)
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(7.dp))
 
-        // --- MENÚ INFERIOR ---
+        // Menú fuera del borde
         Menu(context)
     }
 }

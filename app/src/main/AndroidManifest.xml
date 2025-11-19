@@ -28,8 +28,6 @@
         <activity
             android:name=".ui.login.Login"
             android:exported="true" />
-
-
         <!--Registro -->
         <activity
             android:name=".ui.registro.Registrar"
@@ -51,6 +49,11 @@
         <activity
             android:name=".ui.editarBiblioteca.EditarBiblioteca"
             android:exported="true" />
+        <!-- Biblioteca -->
+        <activity
+            android:name=".ui.biblioteca.Biblioteca"
+            android:exported="true" />
+
 
 
 

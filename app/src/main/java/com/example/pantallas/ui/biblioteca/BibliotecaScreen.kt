@@ -25,6 +25,9 @@ import com.example.pantallas.modelos.Libro
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 
+// ===========================================================
+// ACTIVITY
+// ===========================================================
 class Biblioteca : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,42 +38,41 @@ class Biblioteca : ComponentActivity() {
     }
 }
 
-// =================================================================
-// Componente para la Tarjeta de un Solo Libro (LibroCard) - Se mantiene igual
-// =================================================================
+// ===========================================================
+// COMPONENTE: Tarjeta de libro
+// ===========================================================
 @Composable
 fun LibroCard(libro: Libro) {
     Column(
         modifier = Modifier
-            .width(100.dp)
-            .height(150.dp)
+            .width(90.dp)
+            .height(105.dp)
             .background(Color.White)
             .border(1.dp, Color.Gray.copy(alpha = 0.7f), RoundedCornerShape(4.dp))
             .padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Placeholder de la Portada
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(100.dp)
+                .height(80.dp)
                 .background(Color.LightGray, RoundedCornerShape(4.dp))
-                .padding(4.dp), // Añadimos padding interno para que el texto no se pegue a los bordes
+                .padding(4.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = libro.titulo,
-                fontSize = 12.sp, // CLAVE: Reducimos ligeramente el tamaño de fuente (de 14sp a 12sp)
+                fontSize = 12.sp,
                 textAlign = TextAlign.Center,
-                lineHeight = 14.sp, // Aseguramos un interlineado adecuado
-                maxLines = 4, // CLAVE: Permitimos hasta 4 líneas
-                overflow = TextOverflow.Ellipsis // Mantenemos elipsis por si acaso
+                lineHeight = 14.sp,
+                maxLines = 4,
+                overflow = TextOverflow.Ellipsis
             )
         }
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Categoría (el texto de abajo)
         Text(
             text = libro.categoria.nombre,
             fontSize = 10.sp,
@@ -81,24 +83,26 @@ fun LibroCard(libro: Libro) {
     }
 }
 
-// =================================================================
-// Componente para una Sección Completa (Se adapta a estar dentro de un gran Box)
-// =================================================================
+// ===========================================================
+// COMPONENTE: Sección de libros
+// ===========================================================
 @Composable
 fun SeccionLibros(titulo: String, libros: List<Libro>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp) // Espacio vertical dentro de la sección
-            .padding(horizontal = 12.dp) // Margen de los lados para que los libros no choquen con el borde grande
+            .padding(vertical = 8.dp)
+            .padding(horizontal = 8.dp)
     ) {
+
         Text(
             text = titulo,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp),
-            color = Color.Black // El texto es negro sobre el fondo blanco del interior de la estantería
+            color = Color.Black,
+            modifier = Modifier.padding(bottom = 10.dp)
         )
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -110,28 +114,67 @@ fun SeccionLibros(titulo: String, libros: List<Libro>) {
     }
 }
 
-// =================================================================
-// PANTALLA PRINCIPAL DE LA BIBLIOTECA (Contenedor Único con Líneas Internas)
-// =================================================================
+// ===========================================================
+// COMPONENTE: Contenido reutilizable de la Biblioteca
+// ===========================================================
 @Composable
-fun BibliotecaScreen(
-    viewModel: BibliotecaViewModel = viewModel()
-) {
+fun BibliotecaContenido(viewModel: BibliotecaViewModel = viewModel()) {
+
     val bibliotecaData = viewModel.biblioteca
     val ColorExteriorEstanteria = Color(0xFFF5E7D3)
-    val ColorBordeEstanteria = Color.Gray.copy(alpha = 0.5f) // Borde del recuadro grande
-    val ColorLineaEstanteria = Color.Gray.copy(alpha = 0.5f) // Línea entre secciones
+    val ColorBordeEstanteria = Color.Gray.copy(alpha = 0.5f)
+    val ColorLineaEstanteria = Color.Gray.copy(alpha = 0.5f)
     val GrosorBorde = 2.dp
     val GrosorLinea = 1.dp
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(ColorExteriorEstanteria)
+            .border(GrosorBorde, ColorBordeEstanteria, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+    ) {
+
+        Column(modifier = Modifier.fillMaxWidth()) {
+
+            SeccionLibros("Recomendados", bibliotecaData.librosRecomendados)
+
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(GrosorLinea)
+                    .background(ColorLineaEstanteria)
+            )
+
+            SeccionLibros("Últimos libros", bibliotecaData.librosLeidos)
+
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(GrosorLinea)
+                    .background(ColorLineaEstanteria)
+            )
+
+            SeccionLibros("Futuras lecturas", bibliotecaData.librosFuturasLecturas)
+        }
+    }
+}
+
+// ===========================================================
+// PANTALLA COMPLETA
+// ===========================================================
+@Composable
+fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White) // Fondo general de la pantalla
+            .background(Color.White)
             .verticalScroll(rememberScrollState())
-            .systemBarsPadding(), // Para manejar las barras del sistema
+            .systemBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         Text(
             text = "Mi Biblioteca",
             fontSize = 32.sp,
@@ -139,59 +182,21 @@ fun BibliotecaScreen(
             modifier = Modifier.padding(top = 24.dp, bottom = 24.dp)
         )
 
-        // --- CONTENEDOR GRANDE DE LA ESTANTERÍA ---
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp) // Margen de la estantería respecto a los lados de la pantalla
-                .background(ColorExteriorEstanteria) // Fondo ligeramente gris para el interior de la estantería
-                .border(GrosorBorde, ColorBordeEstanteria, RoundedCornerShape(8.dp)) // Borde del recuadro grande
-                .clip(RoundedCornerShape(8.dp)) // Asegura que el contenido respete las esquinas redondeadas
+                .padding(horizontal = 16.dp)
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // 1. Libros Recomendados
-                SeccionLibros(
-                    titulo = "Recomendados",
-                    libros = bibliotecaData.librosRecomendados
-                )
-
-                // 2. Línea separadora (Estantería)
-                Spacer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(GrosorLinea)
-                        .background(ColorLineaEstanteria)
-                )
-
-                // 3. Últimos Libros Leídos
-                SeccionLibros(
-                    titulo = "Últimos libros",
-                    libros = bibliotecaData.librosLeidos
-                )
-
-                // 4. Línea separadora (Estantería)
-                Spacer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(GrosorLinea)
-                        .background(ColorLineaEstanteria)
-                )
-
-                // 5. Futuras Lecturas
-                SeccionLibros(
-                    titulo = "Futuras lecturas",
-                    libros = bibliotecaData.librosFuturasLecturas
-                )
-            }
+            BibliotecaContenido(viewModel = viewModel)
         }
-        // --- FIN DEL CONTENEDOR GRANDE ---
 
-        Spacer(modifier = Modifier.height(30.dp)) // Espacio final en el fondo blanco de la pantalla
+        Spacer(modifier = Modifier.height(30.dp))
     }
 }
 
+// ===========================================================
+// PREVIEW
+// ===========================================================
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewBibliotecaScreen() {

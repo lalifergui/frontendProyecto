@@ -33,7 +33,7 @@ fun Menu(context: Context,modifier: Modifier = Modifier){
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
+            .height(70.dp)
             .padding(horizontal = 16.dp)
             .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
             .border(1.dp, Color.Black, shape = RoundedCornerShape(8.dp)),
@@ -49,7 +49,7 @@ fun Menu(context: Context,modifier: Modifier = Modifier){
                 contentDescription = "Casa",
                 tint = Color.Black,
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(45.dp)
                     .clickable {
                         val intent = Intent(context, Principal::class.java)
                         context.startActivity(intent)
@@ -60,7 +60,7 @@ fun Menu(context: Context,modifier: Modifier = Modifier){
                 contentDescription = "Favoritos",
                 tint = Color.Black,
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(45.dp)
                     .clickable {
                         val intent = Intent(context, Favoritos::class.java)
                         context.startActivity(intent)
@@ -70,14 +70,14 @@ fun Menu(context: Context,modifier: Modifier = Modifier){
                 imageVector = Icons.Filled.MailOutline,
                 contentDescription = "Chat",
                 tint = Color.Black,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(45.dp)
             )
             Icon(
                 imageVector = Icons.Filled.AccountCircle,
                 contentDescription = "Perfil",
                 tint = Color.Black,
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(45.dp)
                     .clickable {
                         val intent = Intent(context, Perfil::class.java)
                         context.startActivity(intent)

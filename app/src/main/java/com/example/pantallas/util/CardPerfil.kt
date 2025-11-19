@@ -12,9 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,7 +26,6 @@ import com.example.pantallas.modelos.Perfil
 @Composable
 fun CardPerfil(perfil: Perfil) {
 
-    // Definimos un color azul oscuro similar al de la imagen
     val FondoCardColor = Color(0xFF2E4053)
     val TextoCardColor = Color.White
 
@@ -39,59 +35,59 @@ fun CardPerfil(perfil: Perfil) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             // Fondo de color y bordes redondeados
-            .background(FondoCardColor, shape = RoundedCornerShape(12.dp))
-            .padding(16.dp),
+            .background(FondoCardColor, shape = RoundedCornerShape(10.dp))
+            // CLAVE: Reducción del padding vertical
+            .padding(vertical = 8.dp, horizontal = 12.dp), // 👈 REDUCIDO de 10.dp a 8.dp
         verticalAlignment = Alignment.CenterVertically
     ) {
 
         // 1. Círculo de Foto de Perfil
         Box(
             modifier = Modifier
-                .size(72.dp)
+                .size(68.dp) // 👈 REDUCIDO Ligeramente de 72.dp a 68.dp
                 .clip(CircleShape)
                 .background(Color.White)
-                .border(2.dp, TextoCardColor, CircleShape), // Borde blanco opcional
+                .border(2.dp, TextoCardColor, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "Foto",
                 color = Color.Black,
-                fontSize = 14.sp
+                fontSize = 12.sp // Texto de foto ligeramente más pequeño
             )
-            // Podrías usar Icons.Filled.AccountCircle si prefieres un icono
         }
 
-        Spacer(modifier = Modifier.size(16.dp))
+        Spacer(modifier = Modifier.size(12.dp)) // 👈 REDUCIDO de 16.dp a 12.dp
 
         // 2. Columna de Datos
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center
         ) {
-
-            // Nombre de usuario (usamos el email del objeto Usuario como ejemplo de identificador)
+            // Nombre de usuario y Apellidos (El texto que ocupa más altura)
             Text(
                 text = "Nombre usuario:\n${perfil.nombre} ${perfil.apellidos}",
-                fontSize = 18.sp,
+                fontSize = 14.sp, // Reducido de 18.sp a 14.sp para evitar desborde/altura
                 fontWeight = FontWeight.SemiBold,
-                color = TextoCardColor // Texto blanco
+                color = TextoCardColor,
+                lineHeight = 16.sp, // Controlamos el interlineado para compactar
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(2.dp)) // 👈 REDUCIDO de 4.dp a 2.dp
 
-            // Edad (Usamos la fecha de nacimiento como dato proxy, idealmente calcularías la edad real)
+            // Edad
             Text(
-                text = "Edad: ${perfil.fechaNacimiento}", // Mostrará la fecha de nacimiento
-                fontSize = 16.sp,
+                text = "Edad: ${perfil.fechaNacimiento}",
+                fontSize = 12.sp, // Reducido de 16.sp a 12.sp
                 color = TextoCardColor
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(2.dp)) // 👈 REDUCIDO de 4.dp a 2.dp
 
             // Ciudad
             Text(
                 text = "Ciudad: ${perfil.ciudad}",
-                fontSize = 16.sp,
+                fontSize = 12.sp, // Reducido de 16.sp a 12.sp
                 color = TextoCardColor
             )
         }
