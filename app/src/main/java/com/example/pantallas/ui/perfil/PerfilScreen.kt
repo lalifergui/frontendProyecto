@@ -83,7 +83,7 @@ fun PerfilAnyadir(
                 fontWeight = FontWeight.Bold
             )
 
-            // Íconos de Acción
+
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
 
                 // ICONO 1: Editar Perfil (Lápiz)

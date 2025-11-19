@@ -29,7 +29,7 @@ import com.example.pantallas.ui.favoritos.Favoritos
 import com.example.pantallas.ui.principal.Principal
 
 @Composable
-fun Menu(context: Context){
+fun Menu(context: Context,modifier: Modifier = Modifier){
     Box(
         modifier = Modifier
             .fillMaxWidth()
