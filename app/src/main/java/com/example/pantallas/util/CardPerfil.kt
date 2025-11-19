@@ -37,14 +37,14 @@ fun CardPerfil(perfil: Perfil) {
             // Fondo de color y bordes redondeados
             .background(FondoCardColor, shape = RoundedCornerShape(10.dp))
             // CLAVE: Reducción del padding vertical
-            .padding(vertical = 8.dp, horizontal = 12.dp), // 👈 REDUCIDO de 10.dp a 8.dp
+            .padding(vertical = 8.dp, horizontal = 12.dp), // REDUCIDO de 10.dp a 8.dp
         verticalAlignment = Alignment.CenterVertically
     ) {
 
         // 1. Círculo de Foto de Perfil
         Box(
             modifier = Modifier
-                .size(68.dp) // 👈 REDUCIDO Ligeramente de 72.dp a 68.dp
+                .size(68.dp) // REDUCIDO Ligeramente de 72.dp a 68.dp
                 .clip(CircleShape)
                 .background(Color.White)
                 .border(2.dp, TextoCardColor, CircleShape),
@@ -57,7 +57,7 @@ fun CardPerfil(perfil: Perfil) {
             )
         }
 
-        Spacer(modifier = Modifier.size(12.dp)) // 👈 REDUCIDO de 16.dp a 12.dp
+        Spacer(modifier = Modifier.size(10.dp)) // REDUCIDO de 16.dp a 12.dp
 
         // 2. Columna de Datos
         Column(
@@ -66,14 +66,14 @@ fun CardPerfil(perfil: Perfil) {
         ) {
             // Nombre de usuario y Apellidos (El texto que ocupa más altura)
             Text(
-                text = "Nombre usuario:\n${perfil.nombre} ${perfil.apellidos}",
+                text = "\n${perfil.nombre} ${perfil.apellidos}",
                 fontSize = 14.sp, // Reducido de 18.sp a 14.sp para evitar desborde/altura
                 fontWeight = FontWeight.SemiBold,
                 color = TextoCardColor,
                 lineHeight = 16.sp, // Controlamos el interlineado para compactar
             )
 
-            Spacer(modifier = Modifier.height(2.dp)) // 👈 REDUCIDO de 4.dp a 2.dp
+            Spacer(modifier = Modifier.height(2.dp)) // REDUCIDO de 4.dp a 2.dp
 
             // Edad
             Text(
@@ -82,7 +82,7 @@ fun CardPerfil(perfil: Perfil) {
                 color = TextoCardColor
             )
 
-            Spacer(modifier = Modifier.height(2.dp)) // 👈 REDUCIDO de 4.dp a 2.dp
+            Spacer(modifier = Modifier.height(2.dp)) // REDUCIDO de 4.dp a 2.dp
 
             // Ciudad
             Text(
