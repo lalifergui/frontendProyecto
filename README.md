@@ -69,7 +69,7 @@ El código fuente principal se encuentra en la carpeta `app`, siguiendo la estru
 Este proyecto está siendo desarrollado por:
 
 * **Laura Fernández Guirao**
-* [Enlace a tu GitHub o LinkedIn (Recomendado: Remplaza este texto con el enlace)]
+
 
 ---
 **Nota:** Este repositorio es la parte frontend del proyecto. La funcionalidad completa depende de la conexión con el repositorio de backend correspondiente.
