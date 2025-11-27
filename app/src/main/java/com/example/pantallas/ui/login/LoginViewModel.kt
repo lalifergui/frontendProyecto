@@ -1,9 +1,9 @@
 package com.example.pantallas.ui.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.pantallas.data.dto.LoginDTO
-import com.example.pantallas.data.dto.LoginResponse
-import com.example.pantallas.data.repositorios.LoginRepositorio
+import com.example.pantallas.data.model.LoginDTO
+import com.example.pantallas.data.model.LoginResponse
+import com.example.pantallas.data.repository.LoginRepositorio
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine

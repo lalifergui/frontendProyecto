@@ -1,4 +1,4 @@
-package com.example.pantallas.data.repositorios
+package com.example.pantallas.data.repository
 
 import com.example.pantallas.api.LibroApi
 import com.example.pantallas.api.RetrofitClient

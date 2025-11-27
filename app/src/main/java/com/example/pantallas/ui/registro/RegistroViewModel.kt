@@ -4,8 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import com.example.pantallas.data.dto.UsuarioDTO
-import com.example.pantallas.modelos.Usuario
+import com.example.pantallas.data.model.UsuarioDTO
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 

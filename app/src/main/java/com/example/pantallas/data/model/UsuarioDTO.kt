@@ -1,10 +1,7 @@
-package com.example.pantallas.data.dto
-
-import com.example.pantallas.modelos.Categoria
-import java.time.LocalDate
+package com.example.pantallas.data.model
 
 data class UsuarioDTO(
-    //val usuarioId: Long,
+    val usuarioId: Long,
     val usuario: String="",
     val apellidos: String="",
     val fechaNacimiento: String="",

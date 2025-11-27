@@ -1,4 +1,4 @@
-package com.example.pantallas.data.dto
+package com.example.pantallas.data.model
 
 data class PerfilDTO(
     val perfilId: Long? = null,

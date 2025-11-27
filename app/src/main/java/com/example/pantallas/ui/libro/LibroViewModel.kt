@@ -1,7 +1,7 @@
 package com.example.pantallas.ui.libro
 
 import androidx.lifecycle.ViewModel
-import com.example.pantallas.data.repositorios.LibroRepositorio
+import com.example.pantallas.data.repository.LibroRepositorio
 import com.example.pantallas.modelos.Libro
 import com.example.pantallas.modelos.Categoria
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -1,8 +1,8 @@
-package com.example.pantallas.data.repositorios
+package com.example.pantallas.data.repository
 
 import com.example.pantallas.api.RetrofitClient
-import com.example.pantallas.data.dto.LoginRequest
-import com.example.pantallas.data.dto.LoginResponse
+import com.example.pantallas.data.model.LoginRequest
+import com.example.pantallas.data.model.LoginResponse
 
 class LoginRepositorio {
     private  val api= RetrofitClient.loginApi

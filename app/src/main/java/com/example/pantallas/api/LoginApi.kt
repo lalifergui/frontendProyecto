@@ -1,8 +1,8 @@
 package com.example.pantallas.api
 
 
-import com.example.pantallas.data.dto.LoginRequest
-import com.example.pantallas.data.dto.LoginResponse
+import com.example.pantallas.data.model.LoginRequest
+import com.example.pantallas.data.model.LoginResponse
 import retrofit2.http.Body
 
 
