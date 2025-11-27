@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,6 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pantallas.ui.biblioteca.BibliotecaContenido
 import com.example.pantallas.ui.editarBiblioteca.EditarBiblioteca
 import com.example.pantallas.ui.editarPerfil.EditarPerfil
 import com.example.pantallas.util.CardPerfil // Asegúrate de que esta importación sea correcta
@@ -135,15 +137,16 @@ fun PerfilAnyadir(
                 )
             }
         }
-        Text(
-            text = "Zona de la Biblioteca (Próximamente)",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        // Este gran Spacer dejará el espacio entre el Card y el Menu inferior
-        Spacer(modifier = Modifier.height(300.dp))
-        // --- FIN: Hueco para la futura Biblioteca ---
+        Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                ) {
+            // Asumimos que BibliotecaContenido usa @Composable y no necesita pasar el VM directamente
+            BibliotecaContenido()
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
 
         // El Menu se mantiene dentro del Column para que el scroll funcione con él
         Menu(context)

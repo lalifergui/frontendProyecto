@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -28,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.util.Menu
 import com.example.pantallas.R
+import com.example.pantallas.modelos.Categoria
 import com.example.pantallas.ui.biblioteca.BibliotecaContenido
 import com.example.pantallas.ui.biblioteca.BibliotecaViewModel // Importación lógica
 import com.example.pantallas.ui.perfil.PerfilViewModel
@@ -77,7 +82,15 @@ fun PrincipalScreen(
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+        CategoriaDropdown(
+            categorias = Categoria.listaCategorias,
+            onCategoriaSelected = { categoria ->
+                // TODO: filtrar bibliotecas aquí
+                println("Elegiste: ${categoria.nombre}")
+            }
+        )
+        Spacer(modifier = Modifier.height(10.dp))
 
         // --- Column con borde gris para todo el contenido de swipe ---
         Column(
@@ -144,6 +157,54 @@ fun PrincipalScreen(
         Menu(context)
     }
 }
+@Composable
+fun CategoriaDropdown(
+    categorias: List<Categoria>,
+    onCategoriaSelected: (Categoria) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedText by remember { mutableStateOf("Selecciona una categoría") }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+
+        // Campo visible
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                .padding(8.dp)
+                .clickable { expanded = true },
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = selectedText)
+            Icon(
+                imageVector = Icons.Filled.ArrowDropDown,
+                contentDescription = "abrir"
+            )
+        }
+
+        // Dropdown
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+        ) {
+            categorias.forEach { categoria ->
+                DropdownMenuItem(
+                    text = { Text(categoria.nombre) },
+                    onClick = {
+                        selectedText = categoria.nombre
+                        expanded = false
+                        onCategoriaSelected(categoria)
+                    }
+                )
+            }
+        }
+    }
+}
+
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
