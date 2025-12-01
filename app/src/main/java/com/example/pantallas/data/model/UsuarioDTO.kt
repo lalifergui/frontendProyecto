@@ -1,7 +1,6 @@
 package com.example.pantallas.data.model
 
 data class UsuarioDTO(
-    val usuarioId: Long,
     val usuario: String="",
     val apellidos: String="",
     val fechaNacimiento: String="",
