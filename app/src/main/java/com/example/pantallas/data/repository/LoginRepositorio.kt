@@ -1,6 +1,6 @@
 package com.example.pantallas.data.repository
 
-import com.example.pantallas.api.RetrofitClient
+import com.example.pantallas.data.network.RetrofitClient
 import com.example.pantallas.data.model.LoginRequest
 import com.example.pantallas.data.model.LoginResponse
 

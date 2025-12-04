@@ -8,9 +8,9 @@ import retrofit2.http.Body
 
 interface LibroApi {
 
-    @GET("libros") // La URL que tengas en tu backend
-    fun getLibros(): Call<List<Libro>>
+    @GET("libros") // La URL del  backend
+    suspend fun getLibros(): Call<List<Libro>>
 
     @POST("libros")
-    fun crearLibro(@Body libro: Libro): Call<Libro>
+    suspend fun crearLibro(@Body libro: Libro): Call<Libro>
 }
