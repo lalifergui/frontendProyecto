@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,23 +35,28 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-class EditarPerfil : ComponentActivity(){
+class EditarPerfil : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             // Muestra tu pantalla aquí cuando ejecutes la app
-            EditarPerfilVentana ()
+            EditarPerfilVentana()
         }
     }
 }
+
 @Composable
 fun EditarPerfilVentana(
-    //una funcion no recibe parámetros y no devuelve nada
-    onRegistrarClick: () -> Unit = {}
+
+    viewModel: EditarPerfilViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val context = LocalContext.current
     var nombre by remember { mutableStateOf("") }
+    var apellidos by remember { mutableStateOf("") }
+    var fechaNacimiento by remember { mutableStateOf("") }
+    var ciudad by remember { mutableStateOf("") }
+    var fotoPerfil by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -63,13 +71,13 @@ fun EditarPerfilVentana(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
 
-        ){
+        ) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
                     .border(
                         width = 1.dp,
-                        color= Color.White,
+                        color = Color.White,
                         shape = RoundedCornerShape(8.dp)
                     )
             )
@@ -78,28 +86,70 @@ fun EditarPerfilVentana(
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .align (Alignment.TopCenter)
+                    .align(Alignment.TopCenter)
                     .padding(start = 12.dp, end = 12.dp)
 
 
             )
-            // Campo de texto interno (placeholder)
-            BasicTextField(
-                value = nombre,
-                onValueChange = { nombre = it },
-                textStyle = TextStyle(fontSize = 16.sp, color = Color.Black),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 24.dp, top = 20.dp, bottom = 600.dp)
-                    .align(Alignment.CenterStart)
-            )
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Spacer(modifier = Modifier.height(32.dp))
+                PantallaConTextEditable(nombre, { nombre = it }, "Nombre")
+                PantallaConTextEditable(apellidos, { apellidos = it }, "Apellidos")
+                PantallaConTextEditable(
+                    fechaNacimiento,
+                    { fechaNacimiento = it },
+                    "Fecha de Nacimiento"
+                )
+                PantallaConTextEditable(
+                    ciudad,
+                    { ciudad = it },
+                    "Ciudad"
+                )
+                PantallaConTextEditable(
+                    fotoPerfil,
+                    { fotoPerfil = it },
+                    "Foto de Perfil"
+                )
+                Spacer(modifier = Modifier.height(25.dp))
+                Button(onClick = {viewModel.actualizarPerfil(usuarioId = 1L)}){
+                    Text(
+                        text = "Guardar cambios")
+                }
+            }
+
         }
         Spacer(modifier = Modifier.height(24.dp))
 
     }
 }
+
+@Composable
+fun PantallaConTextEditable(
+    valor: String,
+    onTextFieldChange: (String) -> Unit,
+    etiqueta: String
+
+) {
+    Spacer(modifier = Modifier.height(20.dp))
+    OutlinedTextField(
+        value = valor,
+        onValueChange = onTextFieldChange,
+        label = { Text(etiqueta) },
+        modifier = Modifier.fillMaxWidth(0.8f)
+
+
+    )
+
+
+}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewRegistroScreenEditarPerfil() {
-    EditarPerfilVentana  ()
+    EditarPerfilVentana()
 }

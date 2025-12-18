@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -10,9 +12,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Pantallas">
+        android:theme="@style/Theme.Pantallas"
 
-        <!-- 🔹 Pantalla principal -->
+        android:usesCleartextTraffic="true">
+
         <activity
             android:name=".ui.principal.Principal"
             android:exported="true"
@@ -24,40 +27,13 @@
             </intent-filter>
         </activity>
 
-        <!--Login -->
-        <activity
-            android:name=".ui.login.Login"
-            android:exported="true" />
-        <!--Registro -->
-        <activity
-            android:name=".ui.registro.Registrar"
-            android:exported="true" />
-        <!--Pantalla favoritos -->
-        <activity
-            android:name=".ui.favoritos.Favoritos"
-            android:exported="true" />
-        <!--Perfil -->
-        <activity
-            android:name=".ui.perfil.Perfil"
-            android:exported="true" />
-
-        <!--Editar Perfil -->
-        <activity
-            android:name=".ui.editarPerfil.EditarPerfil"
-            android:exported="true" />
-        <!--Editar Biblioteca -->
-        <activity
-            android:name=".ui.editarBiblioteca.EditarBiblioteca"
-            android:exported="true" />
-        <!-- Biblioteca -->
-        <activity
-            android:name=".ui.biblioteca.Biblioteca"
-            android:exported="true" />
-
-
-
-
+        <activity android:name=".ui.login.Login" android:exported="true" />
+        <activity android:name=".ui.registro.Registrar" android:exported="true" />
+        <activity android:name=".ui.favoritos.Favoritos" android:exported="true" />
+        <activity android:name=".ui.perfil.Perfil" android:exported="true" />
+        <activity android:name=".ui.editarPerfil.EditarPerfil" android:exported="true" />
+        <activity android:name=".ui.editarBiblioteca.EditarBiblioteca" android:exported="true" />
+        <activity android:name=".ui.biblioteca.Biblioteca" android:exported="true" />
 
     </application>
-
 </manifest>
