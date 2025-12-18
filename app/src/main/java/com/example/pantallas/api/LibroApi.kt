@@ -9,8 +9,8 @@ import retrofit2.http.Body
 interface LibroApi {
 
     @GET("libros") // La URL del  backend
-    suspend fun getLibros(): Call<List<Libro>>
+    suspend fun getLibros(): List<Libro>
 
     @POST("libros")
-    suspend fun crearLibro(@Body libro: Libro): Call<Libro>
+    suspend fun crearLibro(@Body libro: Libro): Libro
 }
