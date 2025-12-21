@@ -35,16 +35,18 @@ import com.example.pantallas.modelos.NotificacionesFavoritos
 import com.example.pantallas.modelos.UsuariosFavoritos
 import com.example.pantallas.util.CardPerfil
 import com.example.pantallas.util.Menu
+
 class Favoritos : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // Llamamos a la función que ya tienes corregida
+
             PantallaFavoritos()
         }
     }
 }
+
 @Composable
 fun PantallaFavoritos(
 
@@ -70,7 +72,7 @@ fun PantallaFavoritos(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 2. Barra de Navegación (Usuarios | Notificaciones)
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -107,7 +109,9 @@ fun PantallaFavoritos(
 
             Divider(
                 color = Color(0xFFCCCCCC),
-                modifier = Modifier.height(32.dp).width(1.dp)
+                modifier = Modifier
+                    .height(32.dp)
+                    .width(1.dp)
             )
 
             // Botón Notificaciones
@@ -148,6 +152,7 @@ fun PantallaFavoritos(
                         }
                     }
                 }
+
                 "notificaciones" -> {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(viewModel.listaNotificaciones) { nota ->
@@ -155,6 +160,7 @@ fun PantallaFavoritos(
                         }
                     }
                 }
+
                 else -> {
                     // PANTALLA EN BLANCO (Estado inicial)
                     Text(
@@ -204,7 +210,11 @@ fun ItemUsuario(usuarioFavorito: UsuariosFavoritos) {
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text(text = usuarioFavorito.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        text = usuarioFavorito.nombre,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
                     Text(text = "Toca para ver detalles", fontSize = 11.sp, color = Color.Gray)
                 }
             }
@@ -239,8 +249,9 @@ fun ItemNotificacion(nota: NotificacionesFavoritos) {
     }
     Divider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp)
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewRegistroScreenFav() {
-    PantallaFavoritos ()
+    PantallaFavoritos()
 }
