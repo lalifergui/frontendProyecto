@@ -9,7 +9,6 @@ data class Perfil(
     val fechaNacimiento: String,
     val ciudad: String,
     val fotoPerfil: String? = null,
-    // ¡CORRECCIÓN AQUÍ! Usamos el objeto Usuario.
     val usuario: Usuario
 ) {
     // Definimos un objeto Perfil de ejemplo para usarlo en el ViewModel
