@@ -25,9 +25,7 @@ import com.example.pantallas.modelos.Libro
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 
-// ===========================================================
-// ACTIVITY
-// ===========================================================
+
 class Biblioteca : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,9 +36,7 @@ class Biblioteca : ComponentActivity() {
     }
 }
 
-// ===========================================================
-// COMPONENTE: Tarjeta de libro
-// ===========================================================
+
 @Composable
 fun LibroCard(libro: Libro) {
     Column(

@@ -53,8 +53,7 @@ fun PantallaFavoritos(
     onRegistrarClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    // Eliminamos 'nombre' ya que no lo estamos usando en este diseño
-    // var nombre by remember { mutableStateOf("") }
+
 
     Column(
         modifier = Modifier
