@@ -1,6 +1,5 @@
 package com.example.pantallas.ui.principal
 
-
 import androidx.compose.ui.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -34,10 +32,9 @@ import com.example.pantallas.util.Menu
 import com.example.pantallas.R
 import com.example.pantallas.modelos.Categoria
 import com.example.pantallas.ui.biblioteca.BibliotecaContenido
-import com.example.pantallas.ui.biblioteca.BibliotecaViewModel // Importación lógica
+import com.example.pantallas.ui.biblioteca.BibliotecaViewModel
 import com.example.pantallas.ui.perfil.PerfilViewModel
 import com.example.pantallas.util.CardPerfil
-
 
 class Principal : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,12 +48,10 @@ class Principal : ComponentActivity() {
 
 @Composable
 fun PrincipalScreen(
-    //INTEGRACIÓN DE LOS TRES VIEWMODELS
     principalViewModel: PrincipalViewModel = viewModel(),
     perfilViewModel: PerfilViewModel = viewModel(),
     bibliotecaViewModel: BibliotecaViewModel = viewModel()
 ) {
-    // OBTENCIÓN DE DATOS PARA LA LÓGICA Y VISUAL
     val perfilData = perfilViewModel.perfil
     val libroActual = principalViewModel.libroActual
     val usuarioTargetId = principalViewModel.bibliotecaActualId
@@ -83,16 +78,18 @@ fun PrincipalScreen(
         )
 
         Spacer(modifier = Modifier.height(10.dp))
+
+        // --- DROPDOWN CONECTADO AL VIEWMODEL ---
         CategoriaDropdown(
             categorias = Categoria.listaCategorias,
             onCategoriaSelected = { categoria ->
-                // TODO: filtrar bibliotecas aquí
-                println("Elegiste: ${categoria.nombre}")
+                // 🎯 CONEXIÓN: Enviamos la categoría al ViewModel para filtrar
+                principalViewModel.filtrarPorCategoria(categoria)
             }
         )
+
         Spacer(modifier = Modifier.height(10.dp))
 
-        // --- Column con borde gris para todo el contenido de swipe ---
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -100,23 +97,16 @@ fun PrincipalScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Card del perfil
             CardPerfil(perfil = perfilData)
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Contenido de la biblioteca
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                // Asumimos que BibliotecaContenido usa @Composable y no necesita pasar el VM directamente
+            Box(modifier = Modifier.fillMaxWidth()) {
                 BibliotecaContenido()
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Iconos de acción
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -130,7 +120,7 @@ fun PrincipalScreen(
                     modifier = Modifier
                         .size(50.dp)
                         .clickable {
-                            principalViewModel.dislikeLibro() // 🎯 LÓGICA CONECTADA
+                            principalViewModel.dislikeLibro()
                         }
                 )
 
@@ -142,7 +132,6 @@ fun PrincipalScreen(
                     modifier = Modifier
                         .size(50.dp)
                         .clickable {
-                            // 🎯 LÓGICA CONECTADA
                             libroActual?.let {
                                 principalViewModel.likeLibro(it, usuarioTargetId)
                             }
@@ -152,22 +141,20 @@ fun PrincipalScreen(
         }
 
         Spacer(modifier = Modifier.height(5.dp))
-
-        // Menú fuera del borde
         Menu(context)
     }
 }
+
 @Composable
 fun CategoriaDropdown(
     categorias: List<Categoria>,
     onCategoriaSelected: (Categoria) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    // Texto dinámico para mostrar la selección actual
     var selectedText by remember { mutableStateOf("Selecciona una categoría") }
 
     Box(modifier = Modifier.fillMaxWidth()) {
-
-        // Campo visible
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -183,7 +170,6 @@ fun CategoriaDropdown(
             )
         }
 
-        // Dropdown
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -204,7 +190,6 @@ fun CategoriaDropdown(
         }
     }
 }
-
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable

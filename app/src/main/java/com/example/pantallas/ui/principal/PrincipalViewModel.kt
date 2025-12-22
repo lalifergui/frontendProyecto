@@ -6,9 +6,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pantallas.modelos.Libro
+import com.example.pantallas.modelos.Categoria
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-// Asumimos que tienes una forma de identificar qué biblioteca se está viendo (e.g., un ID de usuario/biblioteca)
 
 class PrincipalViewModel : ViewModel() {
 
@@ -19,88 +19,80 @@ class PrincipalViewModel : ViewModel() {
     var isLoading: Boolean by mutableStateOf(true)
         private set
 
-    // ID o índice que indica qué biblioteca/usuario estamos viendo actualmente
+    // ID de la biblioteca que estamos viendo
     var bibliotecaActualId: Long by mutableStateOf(1L)
         private set
 
+    // 🎯 NUEVO: Estado para la categoría seleccionada
+    var categoriaSeleccionada: Categoria? by mutableStateOf(null)
+        private set
+
     init {
-        // Cargar el primer libro al iniciar
+        cargarSiguienteLibro()
+    }
+
+    // --- LÓGICA DE FILTRADO ---
+
+    /**
+     * Se llama desde el Dropdown de la UI para aplicar el filtro
+     */
+    fun filtrarPorCategoria(categoria: Categoria) {
+        categoriaSeleccionada = categoria
+        // Al cambiar el filtro, reiniciamos la búsqueda desde la primera biblioteca disponible con esa categoría
+        bibliotecaActualId = 1L
         cargarSiguienteLibro()
     }
 
     // --- LÓGICA DE SWIPE ---
 
-    /**
-     * Registra el "Me Gusta" (Like), guarda el usuario y carga el siguiente libro.
-     * @param libro: El libro que recibió el like.
-     * @param usuarioTargetId: El ID del usuario cuya biblioteca se está viendo.
-     */
     fun likeLibro(libro: Libro, usuarioTargetId: Long) {
         viewModelScope.launch {
-            // 1. **GUARDAR USUARIO (Lógica de negocio)**
-            //    Aquí llamarías a tu Repositorio para guardar el 'usuarioTargetId'
-            //    en la lista de usuarios favoritos del usuario que está haciendo el swipe.
             println("Guardando usuario $usuarioTargetId en favoritos.")
-
-            // 2. **Transicionar la Biblioteca**
             transicionarASiguienteBiblioteca()
-
-            // 3. Cargar el siguiente libro
             cargarSiguienteLibro()
         }
     }
 
-    /**
-     * Registra el "No Me Gusta" (Dislike) y pasa a la siguiente biblioteca.
-     */
     fun dislikeLibro() {
         viewModelScope.launch {
-            // No se realiza ninguna acción de guardado, solo se transiciona.
             println("Libro descartado. Pasando a la siguiente biblioteca.")
-
-            // 1. **Transicionar la Biblioteca**
             transicionarASiguienteBiblioteca()
-
-            // 2. Cargar el siguiente libro
             cargarSiguienteLibro()
         }
     }
 
-    // --- LÓGICA DE NAVEGACIÓN DE DATOS ---
-
-    /**
-     * Simula el paso a la siguiente biblioteca de otro usuario.
-     */
     private fun transicionarASiguienteBiblioteca() {
-        // En un entorno real, esto obtendría el ID del siguiente usuario recomendado
-        // Por ahora, solo incrementamos un ID para simular un cambio de contexto.
         bibliotecaActualId += 1
-        println("Cambiando a Biblioteca ID: $bibliotecaActualId")
     }
 
     /**
-     * Carga el próximo libro de la 'bibliotecaActualId'.
+     * Carga el próximo libro respetando el filtro de categoría si existe.
      */
     private fun cargarSiguienteLibro() {
         viewModelScope.launch {
             isLoading = true
 
-            // Simulación: El libro cargado depende de 'bibliotecaActualId'
+            // Simulación de delay de red
+            delay(500)
+
+            // 🎯 LÓGICA DE CATEGORÍA:
+            // Si hay una categoría seleccionada, el libro generado la usará.
+            // En un caso real, aquí harías: repositorio.getLibro(bibliotecaId, categoriaId)
+
+            val categoriaParaElLibro = categoriaSeleccionada ?: Categoria(id = 0, nombre = "General")
+
             val newId = bibliotecaActualId * 100 + (0..10).random()
 
-            // Aquí llamarías a: Repositorio.getLibroParaSwipe(bibliotecaActualId)
-
-            kotlinx.coroutines.delay(500) // Simulación de carga
-
-            // Crear un libro que refleje el cambio de usuario/biblioteca
             libroActual = Libro(
                 id = newId.toLong(),
-                titulo = "Libro de Usuario ${bibliotecaActualId}", // Título que cambia
-                autor = "Autor X",
+                titulo = "Libro de ${categoriaParaElLibro.nombre} (User ${bibliotecaActualId})",
+                autor = "Autor de ${categoriaParaElLibro.nombre}",
                 portada = "",
-                categoria = com.example.pantallas.modelos.Categoria(id = 1, nombre = "Nueva Categoría")
+                categoria = categoriaParaElLibro
             )
+
             isLoading = false
+            println("Cargado libro de categoría: ${categoriaParaElLibro.nombre}")
         }
     }
 }
