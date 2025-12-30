@@ -1,29 +1,20 @@
 package com.example.pantallas.ui.perfil
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,11 +27,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.ui.biblioteca.BibliotecaContenido
 import com.example.pantallas.ui.editarBiblioteca.EditarBiblioteca
 import com.example.pantallas.ui.editarPerfil.EditarPerfil
-import com.example.pantallas.util.CardPerfil // Asegúrate de que esta importación sea correcta
+import com.example.pantallas.util.CardPerfil
 import com.example.pantallas.util.Menu
+import kotlinx.coroutines.delay
 
 class Perfil : ComponentActivity() {
-    // ... (onCreate se mantiene igual) ...
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -50,17 +41,54 @@ class Perfil : ComponentActivity() {
     }
 }
 
-// Nota: La función CampoDeDato se mantiene, pero no se usará en PerfilAnyadir.
-
-// =================================================================
-// COMPOSABLE PRINCIPAL DE LA PANTALLA DE PERFIL
-// =================================================================
 @Composable
 fun PerfilAnyadir(
     perfilViewModel: PerfilViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val perfilData = perfilViewModel.perfil
+
+    // --- LÓGICA DE NAVEGACIÓN Y AVISO DE BIENVENIDA ---
+    // Recuperamos el Intent de la Activity actual
+    val activity = (context as? Activity)
+    val esNuevoRegistro = remember {
+        activity?.intent?.getBooleanExtra("NUEVO_REGISTRO", false) ?: false
+    }
+
+    // Estado para controlar la visibilidad de la alerta emergente
+    var mostrarAvisoBiblioteca by remember { mutableStateOf(esNuevoRegistro) }
+
+    if (mostrarAvisoBiblioteca) {
+        AlertDialog(
+            onDismissRequest = { /* No se cierra al tocar fuera para forzar el aviso */ },
+            title = {
+                Text(
+                    text = "¡IMPORTANTE!",
+                    color = Color.Red,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Debes rellenar tu Biblioteca.\nRedirigiendo en 5 segundos..."
+                )
+            },
+            confirmButton = {} // Se omite el botón para usar el temporizador
+        )
+
+        // Temporizador de 5 segundos para la redirección automática
+        LaunchedEffect(Unit) {
+            delay(5000)
+            mostrarAvisoBiblioteca = false
+
+            // Navegamos a la pantalla de Editar Biblioteca
+            val intent = Intent(context, EditarBiblioteca::class.java)
+            context.startActivity(intent)
+
+            // Limpiamos el extra para evitar que el diálogo se repita al girar la pantalla
+            activity?.intent?.removeExtra("NUEVO_REGISTRO")
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -85,9 +113,7 @@ fun PerfilAnyadir(
                 fontWeight = FontWeight.Bold
             )
 
-
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-
                 // ICONO 1: Editar Perfil (Lápiz)
                 Icon(
                     imageVector = Icons.Filled.Edit,
@@ -100,22 +126,17 @@ fun PerfilAnyadir(
                             context.startActivity(intent)
                         }
                 )
-
-
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // --- INICIO: Card Perfil ---
-        // Se reemplaza el bloque de Column y CampoDeDato por el CardPerfil
+        // --- Card Perfil (Componente Reutilizable) ---
         CardPerfil(perfil = perfilData)
-        // --- FIN: Card Perfil ---
 
-
-        // --- INICIO: Hueco para la futura Biblioteca ---
         Spacer(modifier = Modifier.height(32.dp))
-        // ICONO 2: Editar Biblioteca
+
+        // --- Sección de Biblioteca ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -123,40 +144,31 @@ fun PerfilAnyadir(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Icon(
-                    imageVector = Icons.Filled.MenuBook,
-                    contentDescription = "Editar Biblioteca",
-                    tint = Color.Black,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clickable {
-                            val intent = Intent(context, EditarBiblioteca::class.java)
-                            context.startActivity(intent)
-                        }
-                )
-            }
-        }
-        Box(
+            Icon(
+                imageVector = Icons.Filled.MenuBook,
+                contentDescription = "Editar Biblioteca",
+                tint = Color.Black,
                 modifier = Modifier
-                    .fillMaxWidth()
-                ) {
-            // Asumimos que BibliotecaContenido usa @Composable y no necesita pasar el VM directamente
+                    .size(36.dp)
+                    .clickable {
+                        val intent = Intent(context, EditarBiblioteca::class.java)
+                        context.startActivity(intent)
+                    }
+            )
+        }
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            // Contenido dinámico de la biblioteca
             BibliotecaContenido()
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-
-        // El Menu se mantiene dentro del Column para que el scroll funcione con él
+        // Menú de navegación inferior
         Menu(context)
     }
 }
 
-// ... (La Preview se mantiene igual) ...
-// =================================================================
-// 3. PREVIEW
-// =================================================================
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewPerfilScreen() {
