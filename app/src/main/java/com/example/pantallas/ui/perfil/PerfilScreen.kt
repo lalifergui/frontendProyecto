@@ -24,8 +24,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pantallas.ui.biblioteca.Biblioteca
 import com.example.pantallas.ui.biblioteca.BibliotecaContenido
-import com.example.pantallas.ui.editarBiblioteca.EditarBiblioteca
+
 import com.example.pantallas.ui.editarPerfil.EditarPerfil
 import com.example.pantallas.util.CardPerfil
 import com.example.pantallas.util.Menu
@@ -82,7 +83,7 @@ fun PerfilAnyadir(
             mostrarAvisoBiblioteca = false
 
             // Navegamos a la pantalla de Editar Biblioteca
-            val intent = Intent(context, EditarBiblioteca::class.java)
+            val intent = Intent(context, Biblioteca::class.java)
             context.startActivity(intent)
 
             // Limpiamos el extra para evitar que el diálogo se repita al girar la pantalla
@@ -151,7 +152,7 @@ fun PerfilAnyadir(
                 modifier = Modifier
                     .size(36.dp)
                     .clickable {
-                        val intent = Intent(context, EditarBiblioteca::class.java)
+                        val intent = Intent(context, Biblioteca::class.java)
                         context.startActivity(intent)
                     }
             )
