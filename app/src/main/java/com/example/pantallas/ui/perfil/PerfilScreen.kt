@@ -26,7 +26,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.ui.biblioteca.Biblioteca
 import com.example.pantallas.ui.biblioteca.BibliotecaContenido
+<<<<<<< HEAD
 
+=======
+>>>>>>> c996e53 (proyecto)
 import com.example.pantallas.ui.editarPerfil.EditarPerfil
 import com.example.pantallas.util.CardPerfil
 import com.example.pantallas.util.Menu
@@ -36,50 +39,28 @@ class Perfil : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            PerfilAnyadir()
-        }
+        setContent { PerfilAnyadir() }
     }
 }
 
 @Composable
-fun PerfilAnyadir(
-    perfilViewModel: PerfilViewModel = viewModel()
-) {
+fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
     val context = LocalContext.current
     val perfilData = perfilViewModel.perfil
-
-    // --- LÓGICA DE NAVEGACIÓN Y AVISO DE BIENVENIDA ---
-    // Recuperamos el Intent de la Activity actual
     val activity = (context as? Activity)
-    val esNuevoRegistro = remember {
-        activity?.intent?.getBooleanExtra("NUEVO_REGISTRO", false) ?: false
-    }
+    val esNuevoRegistro = remember { activity?.intent?.getBooleanExtra("NUEVO_REGISTRO", false) ?: false }
+    var mostrarAviso by remember { mutableStateOf(esNuevoRegistro) }
 
-    // Estado para controlar la visibilidad de la alerta emergente
-    var mostrarAvisoBiblioteca by remember { mutableStateOf(esNuevoRegistro) }
-
-    if (mostrarAvisoBiblioteca) {
+    if (mostrarAviso) {
         AlertDialog(
-            onDismissRequest = { /* No se cierra al tocar fuera para forzar el aviso */ },
-            title = {
-                Text(
-                    text = "¡IMPORTANTE!",
-                    color = Color.Red,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Text(
-                    text = "Debes rellenar tu Biblioteca.\nRedirigiendo en 5 segundos..."
-                )
-            },
-            confirmButton = {} // Se omite el botón para usar el temporizador
+            onDismissRequest = { },
+            title = { Text(text = "¡IMPORTANTE!", color = Color.Red, fontWeight = FontWeight.Bold) },
+            text = { Text(text = "Debes rellenar tu Biblioteca.\nRedirigiendo en 5 segundos...") },
+            confirmButton = {}
         )
-
-        // Temporizador de 5 segundos para la redirección automática
         LaunchedEffect(Unit) {
             delay(5000)
+<<<<<<< HEAD
             mostrarAvisoBiblioteca = false
 
             // Navegamos a la pantalla de Editar Biblioteca
@@ -87,53 +68,23 @@ fun PerfilAnyadir(
             context.startActivity(intent)
 
             // Limpiamos el extra para evitar que el diálogo se repita al girar la pantalla
+=======
+            mostrarAviso = false
+            context.startActivity(Intent(context, Biblioteca::class.java))
+>>>>>>> c996e53 (proyecto)
             activity?.intent?.removeExtra("NUEVO_REGISTRO")
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(50.dp))
-
-        // --- Título y Botones de Acción ---
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Perfil",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                // ICONO 1: Editar Perfil (Lápiz)
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    contentDescription = "Editar Perfil",
-                    tint = Color.Black,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clickable {
-                            val intent = Intent(context, EditarPerfil::class.java)
-                            context.startActivity(intent)
-                        }
-                )
-            }
+    Column(modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
+        Spacer(modifier = Modifier.height(35.dp))
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(text = "Perfil", fontSize = 32.sp, fontWeight = FontWeight.Bold)
+            Icon(Icons.Filled.Edit, null, Modifier.size(36.dp).clickable { context.startActivity(Intent(context, EditarPerfil::class.java)) })
         }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // --- Card Perfil (Componente Reutilizable) ---
+        Spacer(modifier = Modifier.height(25.dp))
         CardPerfil(perfil = perfilData)
+<<<<<<< HEAD
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -156,22 +107,19 @@ fun PerfilAnyadir(
                         context.startActivity(intent)
                     }
             )
+=======
+        Spacer(modifier = Modifier.height(25.dp))
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.End) {
+            Icon(Icons.Filled.MenuBook, null, Modifier.size(36.dp).clickable { context.startActivity(Intent(context, Biblioteca::class.java)) })
+>>>>>>> c996e53 (proyecto)
         }
-
         Box(modifier = Modifier.fillMaxWidth()) {
-            // Contenido dinámico de la biblioteca
-            BibliotecaContenido()
+            BibliotecaContenido(esModoEdicion = false) // 🎯 Sin el "+"
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Menú de navegación inferior
         Menu(context)
     }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun PreviewPerfilScreen() {
-    PerfilAnyadir()
-}
+fun PreviewPerfilScreen() { PerfilAnyadir() }
