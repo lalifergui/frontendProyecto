@@ -26,10 +26,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.ui.biblioteca.Biblioteca
 import com.example.pantallas.ui.biblioteca.BibliotecaContenido
-<<<<<<< HEAD
-
-=======
->>>>>>> c996e53 (proyecto)
 import com.example.pantallas.ui.editarPerfil.EditarPerfil
 import com.example.pantallas.util.CardPerfil
 import com.example.pantallas.util.Menu
@@ -60,62 +56,59 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
         )
         LaunchedEffect(Unit) {
             delay(5000)
-<<<<<<< HEAD
-            mostrarAvisoBiblioteca = false
-
-            // Navegamos a la pantalla de Editar Biblioteca
-            val intent = Intent(context, Biblioteca::class.java)
-            context.startActivity(intent)
-
-            // Limpiamos el extra para evitar que el diálogo se repita al girar la pantalla
-=======
             mostrarAviso = false
             context.startActivity(Intent(context, Biblioteca::class.java))
->>>>>>> c996e53 (proyecto)
             activity?.intent?.removeExtra("NUEVO_REGISTRO")
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Spacer(modifier = Modifier.height(35.dp))
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(text = "Perfil", fontSize = 32.sp, fontWeight = FontWeight.Bold)
-            Icon(Icons.Filled.Edit, null, Modifier.size(36.dp).clickable { context.startActivity(Intent(context, EditarPerfil::class.java)) })
+            Icon(
+                imageVector = Icons.Filled.Edit,
+                contentDescription = "Editar Perfil",
+                modifier = Modifier.size(36.dp).clickable {
+                    context.startActivity(Intent(context, EditarPerfil::class.java))
+                }
+            )
         }
+
         Spacer(modifier = Modifier.height(25.dp))
         CardPerfil(perfil = perfilData)
-<<<<<<< HEAD
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(25.dp))
 
         // --- Sección de Biblioteca ---
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.End
         ) {
             Icon(
                 imageVector = Icons.Filled.MenuBook,
-                contentDescription = "Editar Biblioteca",
-                tint = Color.Black,
-                modifier = Modifier
-                    .size(36.dp)
-                    .clickable {
-                        val intent = Intent(context, Biblioteca::class.java)
-                        context.startActivity(intent)
-                    }
+                contentDescription = "Ir a Biblioteca",
+                modifier = Modifier.size(36.dp).clickable {
+                    context.startActivity(Intent(context, Biblioteca::class.java))
+                }
             )
-=======
-        Spacer(modifier = Modifier.height(25.dp))
-        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.End) {
-            Icon(Icons.Filled.MenuBook, null, Modifier.size(36.dp).clickable { context.startActivity(Intent(context, Biblioteca::class.java)) })
->>>>>>> c996e53 (proyecto)
         }
+
         Box(modifier = Modifier.fillMaxWidth()) {
-            BibliotecaContenido(esModoEdicion = false) // 🎯 Sin el "+"
+            BibliotecaContenido(esModoEdicion = false)
         }
+
         Menu(context)
     }
 }
