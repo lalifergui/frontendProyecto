@@ -1,5 +1,6 @@
 package com.example.pantallas.ui.biblioteca
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.modelos.Libro
+import com.example.pantallas.modelos.Perfil
 import com.example.pantallas.ui.libro.LibroScreen
 
 class Biblioteca : ComponentActivity() {
@@ -49,7 +51,7 @@ fun LibroCard(libroInicial: Libro?, esModoEdicion: Boolean) {
         AlertDialog(
             onDismissRequest = { mostrarDialogoOpciones = false },
             title = { Text(text = if (libro != null) "Opciones del libro" else "Hueco vacío") },
-            text = { Text(text = if (libro != null) "¿Qué desea hacer con '${libro!!.titulo}'?" else "¿Desea añadir un libro?") },
+            text = { Text(text = if (libro != null) "¿Qué desea hacer?" else "¿Desea añadir un libro?") },
             confirmButton = {
                 TextButton(onClick = {
                     mostrarDialogoOpciones = false
@@ -60,10 +62,7 @@ fun LibroCard(libroInicial: Libro?, esModoEdicion: Boolean) {
             },
             dismissButton = {
                 if (libro != null) {
-                    TextButton(onClick = {
-                        libro = null
-                        mostrarDialogoOpciones = false
-                    }) {
+                    TextButton(onClick = { libro = null; mostrarDialogoOpciones = false }) {
                         Text("Eliminar", color = Color.Red)
                     }
                 } else {
@@ -74,29 +73,16 @@ fun LibroCard(libroInicial: Libro?, esModoEdicion: Boolean) {
     }
 
     Column(
-        modifier = Modifier
-            .width(90.dp)
-            .height(115.dp)
-            .background(Color.White)
-            .border(1.dp, Color.Gray.copy(alpha = 0.7f), RoundedCornerShape(4.dp))
-            .padding(4.dp),
+        modifier = Modifier.width(90.dp).height(115.dp).background(Color.White)
+            .border(1.dp, Color.Gray.copy(alpha = 0.7f), RoundedCornerShape(4.dp)).padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(85.dp)
-                .background(Color.LightGray, RoundedCornerShape(4.dp)),
+            modifier = Modifier.fillMaxWidth().height(85.dp).background(Color.LightGray, RoundedCornerShape(4.dp)),
             contentAlignment = Alignment.Center
         ) {
             if (libro != null) {
-                Text(
-                    text = libro!!.titulo,
-                    fontSize = 11.sp,
-                    textAlign = TextAlign.Center,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Text(text = libro!!.titulo, fontSize = 11.sp, textAlign = TextAlign.Center, maxLines = 3, overflow = TextOverflow.Ellipsis)
             }
 
             if (esModoEdicion) {
@@ -106,8 +92,7 @@ fun LibroCard(libroInicial: Libro?, esModoEdicion: Boolean) {
                 ) {
                     IconButton(
                         onClick = { mostrarDialogoOpciones = true },
-                        modifier = Modifier
-                            .size(if (libro == null) 40.dp else 24.dp)
+                        modifier = Modifier.size(if (libro == null) 40.dp else 24.dp)
                             .background(if (libro == null) Color.Transparent else Color.White.copy(alpha = 0.6f), CircleShape)
                     ) {
                         Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = Color.Black)
@@ -116,12 +101,7 @@ fun LibroCard(libroInicial: Libro?, esModoEdicion: Boolean) {
             }
         }
         Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = libro?.categoria?.nombre ?: "Sin asignar",
-            fontSize = 9.sp,
-            color = if (libro == null) Color.LightGray else Color.DarkGray,
-            fontWeight = FontWeight.SemiBold
-        )
+        Text(text = libro?.categoria?.nombre ?: "Vacío", fontSize = 9.sp, color = Color.DarkGray)
     }
 }
 
@@ -153,6 +133,39 @@ fun BibliotecaContenido(viewModel: BibliotecaViewModel = viewModel(), esModoEdic
 
 @Composable
 fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
+    val context = LocalContext.current
+    val activity = (context as? Activity)
+
+    // Estados para controlar las alertas
+    var mostrarAlertaSalir by remember { mutableStateOf(false) }
+
+    // --- ALERTA DE SALIR SIN GUARDAR ---
+    if (mostrarAlertaSalir) {
+        AlertDialog(
+            onDismissRequest = { mostrarAlertaSalir = false },
+            title = { Text("Atención", fontWeight = FontWeight.Bold) },
+            text = { Text("¿Estás seguro de que quieres salir sin guardar los cambios?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        mostrarAlertaSalir = false
+                        // Volver al perfil (Sin guardar)
+                        val intent = Intent(context, Perfil::class.java)
+                        context.startActivity(intent)
+                        activity?.finish()
+                    }
+                ) {
+                    Text("SÍ, SALIR", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarAlertaSalir = false }) {
+                    Text("NO, QUEDARME")
+                }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -168,15 +181,48 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 24.dp)
         )
+
         Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+            // Modo edición activado para ver los botones "+"
             BibliotecaContenido(viewModel = viewModel, esModoEdicion = true)
         }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // --- BOTONES INFERIORES ---
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Botón Salir: Abre la alerta
+            OutlinedButton(
+                onClick = { mostrarAlertaSalir = true },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Salir")
+            }
+
+            // Botón Guardar: Guarda y va al perfil
+            Button(
+                onClick = {
+                    // 1. Aquí llamarías a la lógica de guardado: viewModel.guardarCambios()
+                    // 2. Navegar al perfil
+                    val intent = Intent(context, Perfil::class.java)
+                    context.startActivity(intent)
+                    activity?.finish()
+                },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)) // Azul Hexadecimal
+            ) {
+                Text("Guardar cambios", color = Color.White)
+            }
+        }
+
         Spacer(modifier = Modifier.height(30.dp))
     }
 }
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun PreviewBibliotecaScreen() {
-    BibliotecaScreen()
-}
+fun PreviewBibliotecaScreen() { BibliotecaScreen() }
