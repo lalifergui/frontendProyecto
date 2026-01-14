@@ -43,6 +43,7 @@ class Biblioteca : ComponentActivity() {
 
 @Composable
 fun LibroCard(libroInicial: Libro?, esModoEdicion: Boolean) {
+
     val context = LocalContext.current
     var libro by remember { mutableStateOf(libroInicial) }
     var mostrarDialogoOpciones by remember { mutableStateOf(false) }
@@ -135,6 +136,7 @@ fun BibliotecaContenido(viewModel: BibliotecaViewModel = viewModel(), esModoEdic
 fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
     val context = LocalContext.current
     val activity = (context as? Activity)
+    var mostrarAlertaObligatoria by remember { mutableStateOf(true) }
 
     // Estados para controlar las alertas
     var mostrarAlertaSalir by remember { mutableStateOf(false) }
@@ -201,6 +203,22 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text("Salir")
+            }
+            if (mostrarAlertaObligatoria) {
+                AlertDialog(
+                    onDismissRequest = { /* Evita que se cierre al tocar fuera */ },
+                    title = {
+                        Text("IMPORTANTE", color = Color.Red, fontWeight = FontWeight.Bold)
+                    },
+                    text = {
+                        Text("Debes rellenar la biblioteca con AL MENOS un libro.")
+                    },
+                    confirmButton = {
+                        Button(onClick = { mostrarAlertaObligatoria = false }) {
+                            Text("Entendido")
+                        }
+                    }
+                )
             }
 
             // Botón Guardar: Guarda y va al perfil

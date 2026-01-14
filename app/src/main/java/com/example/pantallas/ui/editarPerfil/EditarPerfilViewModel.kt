@@ -20,6 +20,12 @@ class EditarPerfilViewModel : ViewModel() {
 
     var estaCargando by mutableStateOf(false)
     var mensajeError by mutableStateOf<String?>(null)
+    val botonHabilitado: Boolean
+        get() = nombre.isNotBlank() &&
+                apellidos.isNotBlank() &&
+                fechaNacimiento.isNotBlank() &&
+                ciudad.isNotBlank()
+
 
     // Función para cargar los datos actuales del perfil
     fun cargarPerfil(perfilId: Long) {
@@ -48,6 +54,7 @@ class EditarPerfilViewModel : ViewModel() {
             fotoPerfil = fotoPerfil,
             usuarioId = usuarioId
         )
+
 
         viewModelScope.launch {
             try {

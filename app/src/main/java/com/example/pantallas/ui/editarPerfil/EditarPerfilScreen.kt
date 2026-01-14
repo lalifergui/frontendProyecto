@@ -1,6 +1,7 @@
 package com.example.pantallas.ui.editarPerfil
 
 import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -32,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage // Requiere implementación de Coil
+import com.example.pantallas.ui.biblioteca.Biblioteca
+import com.example.pantallas.ui.fotoUsuario.FotoUsuario
 
 class EditarPerfil : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +51,7 @@ fun EditarPerfilVentana(
     viewModel: EditarPerfilViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val activity = (context as? Activity)
+    //val activity = (context as? Activity)
 
     // Estados para los campos de texto
     var nombre by remember { mutableStateOf("") }
@@ -58,7 +61,10 @@ fun EditarPerfilVentana(
 
     // Estado para la URI de la foto seleccionada
     var fotoUri by remember { mutableStateOf<Uri?>(null) }
-
+    val camposRellenados = nombre.isNotBlank() &&
+            apellidos.isNotBlank() &&
+            fechaNacimiento.isNotBlank() &&
+            ciudad.isNotBlank()
     // Launcher para abrir la galería
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -85,7 +91,7 @@ fun EditarPerfilVentana(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // --- SECCIÓN DE FOTO CIRCULAR CON BOTÓN + ---
+
         Box(
             modifier = Modifier
                 .size(120.dp)
@@ -144,29 +150,29 @@ fun EditarPerfilVentana(
             verticalArrangement = Arrangement.Center
         ) {
             PantallaConTextEditable(
-                valor = nombre,
-                onTextFieldChange = { nombre = it },
+                valor = viewModel.nombre,
+                onTextFieldChange = { viewModel.nombre = it },
                 etiqueta = "Nombre",
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) }
             )
 
             PantallaConTextEditable(
-                valor = apellidos,
-                onTextFieldChange = { apellidos = it },
+                valor = viewModel.apellidos,
+                onTextFieldChange = { viewModel.apellidos = it },
                 etiqueta = "Apellidos",
                 leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null) }
             )
 
             PantallaConTextEditable(
-                valor = fechaNacimiento,
-                onTextFieldChange = { fechaNacimiento = it },
+                valor = viewModel.fechaNacimiento,
+                onTextFieldChange = { viewModel.fechaNacimiento = it },
                 etiqueta = "Fecha de Nacimiento",
                 leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) }
             )
 
             PantallaConTextEditable(
-                valor = ciudad,
-                onTextFieldChange = { ciudad = it },
+                valor = viewModel.ciudad,
+                onTextFieldChange = { viewModel.ciudad = it },
                 etiqueta = "Ciudad",
                 leadingIcon = { Icon(Icons.Default.LocationCity, contentDescription = null) }
             )
@@ -179,10 +185,18 @@ fun EditarPerfilVentana(
             ) {
                 Button(
                     onClick = {
-                        // Aquí pasarías la fotoUri.toString() al viewModel si fuera necesario
                         viewModel.actualizarPerfil(usuarioId = 1L)
-                        activity?.finish()
+                        val intent = Intent(context, FotoUsuario::class.java)
+                        // Pasamos los datos a la siguiente pantalla
+                        intent.putExtra("nombre", viewModel.nombre)
+                        intent.putExtra("apellidos", viewModel.apellidos)
+                        intent.putExtra("ciudad", viewModel.ciudad)
+                        intent.putExtra("fecha", viewModel.fechaNacimiento)
+
+                        context.startActivity(intent)
                     },
+                    //EL BOTÓN AHORA DEPENDE DEL VIEWMODEL
+                    enabled = viewModel.botonHabilitado,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(8.dp)
                 ) {

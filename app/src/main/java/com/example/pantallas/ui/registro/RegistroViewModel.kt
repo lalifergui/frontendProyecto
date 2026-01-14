@@ -22,10 +22,7 @@ class RegistroViewModel : ViewModel() {
         _usuario, _errorPassword, _errorEmail
     ) { dto, errPassword, errEmail ->
         // Comprobamos que ABSOLUTAMENTE todos los campos tengan texto
-        val camposLlenos = dto.usuario.isNotBlank() &&
-                dto.apellidos.isNotBlank() &&
-                dto.fechaNacimiento.isNotBlank() &&
-                dto.ciudad.isNotBlank() &&
+        val camposLlenos =
                 dto.email.isNotBlank() &&
                 dto.password.isNotBlank()
 

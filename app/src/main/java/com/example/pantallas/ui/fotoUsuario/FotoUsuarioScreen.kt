@@ -1,17 +1,14 @@
 package com.example.pantallas.ui.fotoUsuario
 
+import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,13 +18,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.example.pantallas.ui.perfil.Perfil
-import com.example.pantallas.ui.registro.PantallaPrincipal
+import com.example.pantallas.ui.biblioteca.Biblioteca
 import com.example.pantallas.util.CardPerfil
 
 class FotoUsuario : ComponentActivity() {
@@ -42,19 +39,18 @@ class FotoUsuario : ComponentActivity() {
 @Composable
 fun FotoUsuarioScreen(viewModel: FotoUsuarioViewModel = viewModel()) {
     val context = LocalContext.current
+    val activity = (context as? Activity)
+
+    // 1. Declaración del dispatcher para que el botón "Volver" funcione
+    val backDispatcher = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+
     val perfil by viewModel.perfil.collectAsState()
     val fotoUri by viewModel.fotoUri.collectAsState()
-
-    // Launcher para seleccionar imagen de la galería
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { viewModel.actualizarFoto(it) }
-    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color.White)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -66,63 +62,71 @@ fun FotoUsuarioScreen(viewModel: FotoUsuarioViewModel = viewModel()) {
             color = Color.Black
         )
         Text(
-            text = "Así es como te verán otros usuarios",
+            text = "Esta es la previsualización de lo que verían los otros usuarios sobre tu perfil.",
             fontSize = 14.sp,
-            color = Color.Gray
+            color = Color.Gray,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 8.dp)
         )
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Contenedor para superponer el botón "+" sobre la CardPerfil
+        // --- REPRESENTACIÓN DE LA CARD ---
         Box(contentAlignment = Alignment.CenterStart) {
             CardPerfil(perfil = perfil)
 
-            // Superponemos el botón de añadir foto exactamente sobre el área del círculo de la Card
+            // Círculo de la foto (Solo vista, sin botón +)
             Box(
                 modifier = Modifier
-                    .padding(start = 16.dp) // Alineado con el círculo de CardPerfil
+                    .padding(start = 16.dp)
                     .size(68.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // Si hay foto, la mostramos
                 if (fotoUri != null) {
                     AsyncImage(
                         model = fotoUri,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                        contentDescription = "Foto de perfil",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
                 }
-
-                // Botón "+"
-                SmallFloatingActionButton(
-                    onClick = { galleryLauncher.launch("image/*") },
-                    shape = CircleShape,
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                    contentColor = Color.White,
-                    modifier = Modifier.size(32.dp).align(Alignment.BottomEnd)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Añadir foto")
-                }
+                // Si fotoUri es null, la CardPerfil mostrará su diseño por defecto
             }
         }
 
-        Spacer(modifier = Modifier.height(50.dp))
+        Spacer(modifier = Modifier.height(60.dp))
 
-        Button(
-            onClick = {
-                val intent = Intent(context, Perfil::class.java)
-                context.startActivity(intent)
-            },
-            modifier = Modifier.fillMaxWidth()
+        // --- BOTONES: VOLVER ATRÁS Y GUARDAR ---
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Finalizar y ver mi Perfil")
+            OutlinedButton(
+                onClick = {backDispatcher?.onBackPressed()},
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Volver a Editar")
+            }
+
+            Button(
+                onClick = {
+                    val intent = Intent(context, Biblioteca::class.java)
+                    context.startActivity(intent)
+                    activity?.finish()
+                },
+                modifier = Modifier.weight(1f)
+
+            ) {
+                Text("Guardar", color = Color.White)
+            }
         }
     }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun PreviewFoto() {
+fun PreviewFotoFinal() {
     FotoUsuarioScreen()
 }
