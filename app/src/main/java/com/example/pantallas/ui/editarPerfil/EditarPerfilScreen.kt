@@ -1,46 +1,43 @@
 package com.example.pantallas.ui.editarPerfil
 
+import android.app.Activity
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage // Requiere implementación de Coil
 
 class EditarPerfil : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // Muestra tu pantalla aquí cuando ejecutes la app
             EditarPerfilVentana()
         }
     }
@@ -48,83 +45,152 @@ class EditarPerfil : ComponentActivity() {
 
 @Composable
 fun EditarPerfilVentana(
-
-    viewModel: EditarPerfilViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: EditarPerfilViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val activity = (context as? Activity)
+
+    // Estados para los campos de texto
     var nombre by remember { mutableStateOf("") }
     var apellidos by remember { mutableStateOf("") }
     var fechaNacimiento by remember { mutableStateOf("") }
     var ciudad by remember { mutableStateOf("") }
-    var fotoPerfil by remember { mutableStateOf("") }
+
+    // Estado para la URI de la foto seleccionada
+    var fotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Launcher para abrir la galería
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        fotoUri = uri
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color.White)
             .padding(24.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(50.dp))
+        Spacer(modifier = Modifier.height(40.dp))
+
+        Text(
+            text = "Editar Perfil",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // --- SECCIÓN DE FOTO CIRCULAR CON BOTÓN + ---
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-
+                .size(120.dp)
+                .padding(8.dp),
+            contentAlignment = Alignment.BottomEnd
         ) {
+            // Círculo de la foto
             Box(
                 modifier = Modifier
-                    .matchParentSize()
-                    .border(
-                        width = 1.dp,
-                        color = Color.White,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-            )
-            Text(
-                text = "Editar Perfil",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(start = 12.dp, end = 12.dp)
-
-
-            )
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .fillMaxSize()
+                    .clip(CircleShape)
+                    .background(Color.LightGray)
+                    .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                    .clickable { galleryLauncher.launch("image/*") },
+                contentAlignment = Alignment.Center
             ) {
-                Spacer(modifier = Modifier.height(32.dp))
-                PantallaConTextEditable(nombre, { nombre = it }, "Nombre")
-                PantallaConTextEditable(apellidos, { apellidos = it }, "Apellidos")
-                PantallaConTextEditable(
-                    fechaNacimiento,
-                    { fechaNacimiento = it },
-                    "Fecha de Nacimiento"
-                )
-                PantallaConTextEditable(
-                    ciudad,
-                    { ciudad = it },
-                    "Ciudad"
-                )
-                PantallaConTextEditable(
-                    fotoPerfil,
-                    { fotoPerfil = it },
-                    "Foto de Perfil"
-                )
-                Spacer(modifier = Modifier.height(25.dp))
-                Button(onClick = {viewModel.actualizarPerfil(usuarioId = 1L)}){
-                    Text(
-                        text = "Guardar cambios")
+                if (fotoUri != null) {
+                    AsyncImage(
+                        model = fotoUri,
+                        contentDescription = "Foto de perfil",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(60.dp),
+                        tint = Color.Gray
+                    )
                 }
             }
 
+            // Botón circular pequeño con el +
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+                    .border(2.dp, Color.White, CircleShape)
+                    .clickable { galleryLauncher.launch("image/*") },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Añadir foto",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            PantallaConTextEditable(
+                valor = nombre,
+                onTextFieldChange = { nombre = it },
+                etiqueta = "Nombre",
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) }
+            )
+
+            PantallaConTextEditable(
+                valor = apellidos,
+                onTextFieldChange = { apellidos = it },
+                etiqueta = "Apellidos",
+                leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null) }
+            )
+
+            PantallaConTextEditable(
+                valor = fechaNacimiento,
+                onTextFieldChange = { fechaNacimiento = it },
+                etiqueta = "Fecha de Nacimiento",
+                leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) }
+            )
+
+            PantallaConTextEditable(
+                valor = ciudad,
+                onTextFieldChange = { ciudad = it },
+                etiqueta = "Ciudad",
+                leadingIcon = { Icon(Icons.Default.LocationCity, contentDescription = null) }
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(0.9f),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Button(
+                    onClick = {
+                        // Aquí pasarías la fotoUri.toString() al viewModel si fuera necesario
+                        viewModel.actualizarPerfil(usuarioId = 1L)
+                        activity?.finish()
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Guardar Cambios", color = Color.White)
+                }
+            }
         }
         Spacer(modifier = Modifier.height(24.dp))
-
     }
 }
 
@@ -132,24 +198,23 @@ fun EditarPerfilVentana(
 fun PantallaConTextEditable(
     valor: String,
     onTextFieldChange: (String) -> Unit,
-    etiqueta: String
-
+    etiqueta: String,
+    leadingIcon: @Composable (() -> Unit)? = null
 ) {
-    Spacer(modifier = Modifier.height(20.dp))
+    Spacer(modifier = Modifier.height(12.dp))
     OutlinedTextField(
         value = valor,
         onValueChange = onTextFieldChange,
         label = { Text(etiqueta) },
-        modifier = Modifier.fillMaxWidth(0.8f)
-
-
+        leadingIcon = leadingIcon,
+        modifier = Modifier.fillMaxWidth(0.9f),
+        singleLine = true,
+        shape = RoundedCornerShape(12.dp)
     )
-
-
 }
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun PreviewRegistroScreenEditarPerfil() {
+fun PreviewEditarPerfil() {
     EditarPerfilVentana()
 }

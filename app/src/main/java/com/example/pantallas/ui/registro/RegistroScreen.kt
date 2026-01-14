@@ -10,7 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -29,8 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.pantallas.ui.perfil.Perfil
-import com.example.pantallas.ui.editarPerfil.EditarPerfil
+import com.example.pantallas.ui.editarPerfil.EditarPerfil // Asegúrate de que esta importación sea correcta
 
 class Registrar : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,43 +55,8 @@ fun RegistroScreen(
     val errorPassword by viewModel.errorPassword.collectAsState()
     val botonHabilitado by viewModel.botonHabilitado.collectAsState(initial = false)
 
-    val context = LocalContext.current
     var passwordVisible by remember { mutableStateOf(false) }
-    var mostrarDialogo by remember { mutableStateOf(false) }
-
-    // --- DIÁLOGO EMERGENTE CON NAVEGACIÓN CONFIGURADA ---
-    if (mostrarDialogo) {
-        AlertDialog(
-            onDismissRequest = { mostrarDialogo = false },
-            title = { Text(text = "Registro completado", fontWeight = FontWeight.Bold) },
-            text = { Text(text = "¿Desea seguir rellenando su perfil con las categorías y las fotos?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        mostrarDialogo = false
-                        //SI: Navega a EditarPerfil
-                        val intent = Intent(context, EditarPerfil::class.java)
-                        context.startActivity(intent)
-                    }
-                ) {
-                    Text("SI", color = Color(0xFF4285F4), fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        mostrarDialogo = false
-                        // NO: Navega a Perfil
-                        val intent = Intent(context, Perfil::class.java)
-                        intent.putExtra("NUEVO_REGISTRO", true)
-                        context.startActivity(intent)
-                    }
-                ) {
-                    Text("NO", color = Color.Gray)
-                }
-            }
-        )
-    }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -114,35 +77,6 @@ fun RegistroScreen(
         Text(text = "Crear Usuario", fontSize = 32.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Bloque de campos de entrada
-        MiTextField(
-            value = usuario.usuario,
-            onValueChange = { viewModel.actualizarUsuario(usuario.copy(usuario = it)) },
-            label = "Nombre",
-            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        MiTextField(
-            value = usuario.apellidos,
-            onValueChange = { viewModel.actualizarUsuario(usuario.copy(apellidos = it)) },
-            label = "Apellidos",
-            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        MiTextField(
-            value = usuario.fechaNacimiento,
-            onValueChange = { viewModel.actualizarUsuario(usuario.copy(fechaNacimiento = it)) },
-            label = "Fecha Nacimiento",
-            leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        MiTextField(
-            value = usuario.ciudad,
-            onValueChange = { viewModel.actualizarUsuario(usuario.copy(ciudad = it)) },
-            label = "Ciudad",
-            leadingIcon = { Icon(Icons.Default.Home, contentDescription = null) }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
         MiTextField(
             value = usuario.email,
             onValueChange = { viewModel.actualizarUsuario(usuario.copy(email = it)) },
@@ -187,9 +121,13 @@ fun RegistroScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Botón habilitado dinámicamente según el ViewModel
+        //BOTÓN REGISTRAR: Navegación directa a EditarPerfil
         Button(
-            onClick = { mostrarDialogo = true },
+            onClick = {
+                // Aquí podrías añadir la lógica para guardar los datos en el servidor antes de navegar
+                val intent = Intent(context, EditarPerfil::class.java)
+                context.startActivity(intent)
+            },
             enabled = botonHabilitado,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp)
