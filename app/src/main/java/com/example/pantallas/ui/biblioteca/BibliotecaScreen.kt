@@ -81,16 +81,37 @@ fun LibroCard(libroInicial: Libro?, esModoEdicion: Boolean) {
     }
 
     Column(
-        modifier = Modifier.width(90.dp).height(115.dp).background(Color.White)
-            .border(1.dp, Color.Gray.copy(alpha = 0.7f), RoundedCornerShape(4.dp)).padding(4.dp),
+        modifier = Modifier
+            .width(95.dp)
+            .height(130.dp)
+            .background(Color.White)
+            .border(1.dp, Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+            .padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().height(85.dp).background(Color.LightGray, RoundedCornerShape(4.dp)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(90.dp)
+                .background(
+                    if (libro == null) Color(0xFFF0F0F0) else Color.LightGray,
+                    RoundedCornerShape(6.dp)
+                ),
             contentAlignment = Alignment.Center
         ) {
             if (libro != null) {
-                Text(text = libro!!.titulo, fontSize = 11.sp, textAlign = TextAlign.Center, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                libro?.let { datosLibros ->
+                    Text(
+                        text = datosLibros.titulo,
+                        fontSize = 11.sp,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
+
             }
 
             if (esModoEdicion) {
@@ -100,23 +121,43 @@ fun LibroCard(libroInicial: Libro?, esModoEdicion: Boolean) {
                 ) {
                     IconButton(
                         onClick = { mostrarDialogoOpciones = true },
-                        modifier = Modifier.size(if (libro == null) 40.dp else 24.dp)
-                            .background(if (libro == null) Color.Transparent else Color.White.copy(alpha = 0.6f), CircleShape)
+                        modifier = Modifier
+                            .size(if (libro == null) 40.dp else 24.dp)
+                            .background(
+                                if (libro == null) Color.Transparent else Color.White.copy(
+                                    alpha = 0.6f
+                                ), CircleShape
+                            )
                     ) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = Color.Black)
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = Color.Black
+                        )
                     }
                 }
             }
         }
         Spacer(modifier = Modifier.height(4.dp))
-        Text(text = libro?.categoria?.nombre ?: "Vacío", fontSize = 9.sp, color = Color.DarkGray)
+        Text(text = libro?.categoria?.nombre ?: "Vacío", fontSize = 10.sp,color = if(libro != null) Color(0xFF2196F3) else Color.Gray,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1)
     }
 }
 
 @Composable
 fun SeccionLibros(titulo: String, libros: List<Libro>, esModoEdicion: Boolean) {
-    Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-        Text(text = titulo, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 10.dp))
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Text(
+            text = titulo,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 10.dp)
+        )
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             for (i in 0 until 3) {
                 LibroCard(libroInicial = libros.getOrNull(i), esModoEdicion = esModoEdicion)
@@ -126,9 +167,18 @@ fun SeccionLibros(titulo: String, libros: List<Libro>, esModoEdicion: Boolean) {
 }
 
 @Composable
-fun BibliotecaContenido(viewModel: BibliotecaViewModel = viewModel(), esModoEdicion: Boolean = false) {
+fun BibliotecaContenido(
+    viewModel: BibliotecaViewModel = viewModel(),
+    esModoEdicion: Boolean = false
+) {
     val bibliotecaData = viewModel.biblioteca
-    Box(modifier = Modifier.fillMaxWidth().background(Color(0xFFF5E7D3)).border(2.dp, Color.Gray.copy(alpha = 0.5f), RoundedCornerShape(8.dp)).clip(RoundedCornerShape(8.dp))) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFF5E7D3))
+            .border(2.dp, Color.Gray.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+    ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             SeccionLibros("Recomendados", bibliotecaData.librosRecomendados, esModoEdicion)
             HorizontalDivider(color = Color.Gray.copy(alpha = 0.5f), thickness = 1.dp)
@@ -173,8 +223,10 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
                     onClick = {
                         mostrarAlertaSalir = false
 
-                        val intent = Intent(context, com.example.pantallas.ui.perfil.Perfil::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        val intent =
+                            Intent(context, com.example.pantallas.ui.perfil.Perfil::class.java)
+                        intent.flags =
+                            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         context.startActivity(intent)
                         activity?.finish()
                     }
@@ -206,7 +258,11 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
             modifier = Modifier.padding(vertical = 24.dp)
         )
 
-        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
             BibliotecaContenido(viewModel = viewModel, esModoEdicion = true)
         }
 
@@ -214,7 +270,9 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
 
         // --- BOTONES INFERIORES ---
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Botón Salir
@@ -247,6 +305,9 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
         Spacer(modifier = Modifier.height(30.dp))
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun PreviewBibliotecaScreen() { BibliotecaScreen() }
+fun PreviewBibliotecaScreen() {
+    BibliotecaScreen()
+}

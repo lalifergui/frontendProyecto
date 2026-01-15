@@ -40,12 +40,36 @@ fun PrincipalScreen(
     perfilViewModel: PerfilViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    Column(Modifier.fillMaxSize().background(Color.White).padding(horizontal = 20.dp).verticalScroll(rememberScrollState()).statusBarsPadding(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("BIBLIO-SWIPE", fontSize = 25.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 12.dp))
+Column (
+    Modifier
+        .fillMaxSize()
+        .background(Color.White)
+        .statusBarsPadding()
+){
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState())
+            .statusBarsPadding(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            "BIBLIO-SWIPE",
+            fontSize = 25.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(vertical = 12.dp)
+        )
 
         // CategoriaDropdown aquí...
 
-        Column(Modifier.fillMaxWidth().border(2.dp, Color.Gray, RoundedCornerShape(8.dp)).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .border(2.dp, Color.Gray, RoundedCornerShape(8.dp))
+                .padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             CardPerfil(perfil = perfilViewModel.perfil)
             Spacer(Modifier.height(12.dp))
             Box(Modifier.fillMaxWidth()) {
@@ -53,14 +77,31 @@ fun PrincipalScreen(
             }
             Spacer(Modifier.height(16.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                Icon(painterResource(R.drawable.libro_x), null, Modifier.size(50.dp).clickable { principalViewModel.dislikeLibro() }, tint = Color.Unspecified)
-                Icon(painterResource(R.drawable.libro_tick), null, Modifier.size(50.dp).clickable { /* Like */ }, tint = Color.Unspecified)
+                Icon(
+                    painterResource(R.drawable.libro_x),
+                    null,
+                    Modifier
+                        .size(50.dp)
+                        .clickable { principalViewModel.dislikeLibro() },
+                    tint = Color.Unspecified
+                )
+                Icon(
+                    painterResource(R.drawable.libro_tick),
+                    null,
+                    Modifier
+                        .size(50.dp)
+                        .clickable { /* Like */ },
+                    tint = Color.Unspecified
+                )
             }
         }
         Menu(context)
     }
 }
+}
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun PreviewPrincipalScreen() { PrincipalScreen() }
+fun PreviewPrincipalScreen() {
+    PrincipalScreen()
+}
