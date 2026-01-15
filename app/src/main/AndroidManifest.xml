@@ -26,13 +26,30 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.fotoUsuario.FotoUsuario" android:exported="false" />
-        <activity android:name=".ui.login.Login" android:exported="true" />
-        <activity android:name=".ui.registro.Registrar" android:exported="true" />
-        <activity android:name=".ui.favoritos.Favoritos" android:exported="true" />
-        <activity android:name=".ui.perfil.Perfil" android:exported="true" />
-        <activity android:name=".ui.editarPerfil.EditarPerfil" android:exported="true" />
-        <activity android:name=".ui.biblioteca.Biblioteca" android:exported="true" />
+        <activity
+            android:name=".ui.fotoUsuario.FotoUsuario"
+            android:exported="false" />
+        <activity
+            android:name=".ui.login.Login"
+            android:exported="true" />
+        <activity
+            android:name=".ui.registro.Registrar"
+            android:exported="true" />
+        <activity
+            android:name=".ui.favoritos.Favoritos"
+            android:exported="true" />
+        <activity
+            android:name=".ui.perfil.Perfil"
+            android:exported="true" />
+        <activity
+            android:name=".ui.editarPerfil.EditarPerfil"
+            android:exported="true" />
+        <activity
+            android:name=".ui.biblioteca.Biblioteca"
+            android:exported="true" />
+        <activity
+            android:name=".ui.libro.LibroScreen"
+            android:exported="false" />
 
     </application>
 </manifest>

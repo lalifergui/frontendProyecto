@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.modelos.Libro
 import com.example.pantallas.modelos.Perfil
+
 import com.example.pantallas.ui.libro.LibroScreen
 
 class Biblioteca : ComponentActivity() {
@@ -56,9 +57,15 @@ fun LibroCard(libroInicial: Libro?, esModoEdicion: Boolean) {
             confirmButton = {
                 TextButton(onClick = {
                     mostrarDialogoOpciones = false
-                    context.startActivity(Intent(context, LibroScreen::class.java))
+                    val intent = Intent(context, LibroScreen::class.java)
+                    // Añade este flag para asegurar que la actividad se lance correctamente
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(intent)
                 }) {
-                    Text(if (libro != null) "Editar / Cambiar" else "Añadir libro", color = Color(0xFF2196F3))
+                    Text(
+                        text = if (libro != null) "Editar / Cambiar" else "Añadir libro",
+                        color = Color(0xFF2196F3)
+                    )
                 }
             },
             dismissButton = {
@@ -136,12 +143,26 @@ fun BibliotecaContenido(viewModel: BibliotecaViewModel = viewModel(), esModoEdic
 fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
     val context = LocalContext.current
     val activity = (context as? Activity)
-    var mostrarAlertaObligatoria by remember { mutableStateOf(true) }
 
-    // Estados para controlar las alertas
+    // ESTADOS
+    var mostrarAlertaObligatoria by remember { mutableStateOf(true) }
     var mostrarAlertaSalir by remember { mutableStateOf(false) }
 
-    // --- ALERTA DE SALIR SIN GUARDAR ---
+    // --- ALERTA 1: OBLIGATORIA AL ENTRAR ---
+    if (mostrarAlertaObligatoria) {
+        AlertDialog(
+            onDismissRequest = { }, // No se cierra tocando fuera
+            title = { Text("IMPORTANTE", color = Color.Red, fontWeight = FontWeight.Bold) },
+            text = { Text("Debes rellenar la biblioteca con AL MENOS un libro.") },
+            confirmButton = {
+                Button(onClick = { mostrarAlertaObligatoria = false }) {
+                    Text("Entendido")
+                }
+            }
+        )
+    }
+
+
     if (mostrarAlertaSalir) {
         AlertDialog(
             onDismissRequest = { mostrarAlertaSalir = false },
@@ -151,8 +172,9 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
                 TextButton(
                     onClick = {
                         mostrarAlertaSalir = false
-                        // Volver al perfil (Sin guardar)
-                        val intent = Intent(context, Perfil::class.java)
+
+                        val intent = Intent(context, com.example.pantallas.ui.perfil.Perfil::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         context.startActivity(intent)
                         activity?.finish()
                     }
@@ -185,7 +207,6 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
         )
 
         Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-            // Modo edición activado para ver los botones "+"
             BibliotecaContenido(viewModel = viewModel, esModoEdicion = true)
         }
 
@@ -196,7 +217,7 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Botón Salir: Abre la alerta
+            // Botón Salir
             OutlinedButton(
                 onClick = { mostrarAlertaSalir = true },
                 modifier = Modifier.weight(1f),
@@ -204,40 +225,25 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
             ) {
                 Text("Salir")
             }
-            if (mostrarAlertaObligatoria) {
-                AlertDialog(
-                    onDismissRequest = { /* Evita que se cierre al tocar fuera */ },
-                    title = {
-                        Text("IMPORTANTE", color = Color.Red, fontWeight = FontWeight.Bold)
-                    },
-                    text = {
-                        Text("Debes rellenar la biblioteca con AL MENOS un libro.")
-                    },
-                    confirmButton = {
-                        Button(onClick = { mostrarAlertaObligatoria = false }) {
-                            Text("Entendido")
-                        }
-                    }
-                )
-            }
 
-            // Botón Guardar: Guarda y va al perfil
+            // Botón Guardar
             Button(
                 onClick = {
-                    // 1. Aquí llamarías a la lógica de guardado: viewModel.guardarCambios()
-                    // 2. Navegar al perfil
                     val intent = Intent(context, Perfil::class.java)
+
+                    // Limpia la pila de actividades para que el registro se considere finalizado
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
                     context.startActivity(intent)
                     activity?.finish()
                 },
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)) // Azul Hexadecimal
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
             ) {
                 Text("Guardar cambios", color = Color.White)
             }
         }
-
         Spacer(modifier = Modifier.height(30.dp))
     }
 }

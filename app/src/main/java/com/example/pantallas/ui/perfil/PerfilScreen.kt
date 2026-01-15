@@ -47,20 +47,6 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
     val esNuevoRegistro = remember { activity?.intent?.getBooleanExtra("NUEVO_REGISTRO", false) ?: false }
     var mostrarAviso by remember { mutableStateOf(esNuevoRegistro) }
 
-    if (mostrarAviso) {
-        AlertDialog(
-            onDismissRequest = { },
-            title = { Text(text = "¡IMPORTANTE!", color = Color.Red, fontWeight = FontWeight.Bold) },
-            text = { Text(text = "Debes rellenar tu Biblioteca.\nRedirigiendo en 5 segundos...") },
-            confirmButton = {}
-        )
-        LaunchedEffect(Unit) {
-            delay(5000)
-            mostrarAviso = false
-            context.startActivity(Intent(context, Biblioteca::class.java))
-            activity?.intent?.removeExtra("NUEVO_REGISTRO")
-        }
-    }
 
     Column(
         modifier = Modifier
