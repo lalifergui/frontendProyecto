@@ -75,7 +75,7 @@ class PrincipalViewModel : ViewModel() {
             // Simulación de delay de red
             delay(500)
 
-            // 🎯 LÓGICA DE CATEGORÍA:
+            //  LÓGICA DE CATEGORÍA:
             // Si hay una categoría seleccionada, el libro generado la usará.
             // En un caso real, aquí harías: repositorio.getLibro(bibliotecaId, categoriaId)
 

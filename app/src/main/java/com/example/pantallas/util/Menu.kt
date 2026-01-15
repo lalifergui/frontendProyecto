@@ -52,10 +52,10 @@ fun Menu(context: Context, modifier: Modifier = Modifier) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(70.dp)
-            .padding(horizontal = 16.dp)
-            .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
-            .border(1.dp, Color.Black, shape = RoundedCornerShape(8.dp)),
+            .height(55.dp) // Más bajo
+            .padding(horizontal = 24.dp) //Más aire a los lados
+            .background(Color(0xFFF5F5F5), shape = RoundedCornerShape(20.dp)) // Color más suave y más redondeado
+            .border(0.5.dp, Color.LightGray, shape = RoundedCornerShape(20.dp)), //  Borde más fino
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -63,12 +63,13 @@ fun Menu(context: Context, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(0.9f)
         ) {
+
             Icon(
                 imageVector = Icons.Filled.Home,
                 contentDescription = "Casa",
                 tint = Color.Black,
                 modifier = Modifier
-                    .size(45.dp)
+                    .size(28.dp)
                     .clickable {
                         val intent = Intent(context, Principal::class.java)
                         context.startActivity(intent)
@@ -79,7 +80,7 @@ fun Menu(context: Context, modifier: Modifier = Modifier) {
                 contentDescription = "Favoritos",
                 tint = Color.Black,
                 modifier = Modifier
-                    .size(45.dp)
+                    .size(28.dp)
                     .clickable {
                         val intent = Intent(context, Favoritos::class.java)
                         context.startActivity(intent)
@@ -90,7 +91,7 @@ fun Menu(context: Context, modifier: Modifier = Modifier) {
                 contentDescription = "Chat",
                 tint = Color.Black,
                 modifier = Modifier
-                    .size(45.dp)
+                    .size(28.dp)
                     .clickable {
                         mostrarAlertaMensaje=true
                     }
@@ -100,7 +101,7 @@ fun Menu(context: Context, modifier: Modifier = Modifier) {
                 contentDescription = "Perfil",
                 tint = Color.Black,
                 modifier = Modifier
-                    .size(45.dp)
+                    .size(28.dp)
                     .clickable {
                         val intent = Intent(context, Perfil::class.java)
                         context.startActivity(intent)

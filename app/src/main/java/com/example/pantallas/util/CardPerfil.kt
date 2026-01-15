@@ -44,7 +44,7 @@ fun CardPerfil(perfil: Perfil) {
         // 1. Círculo de Foto de Perfil
         Box(
             modifier = Modifier
-                .size(68.dp) // REDUCIDO Ligeramente de 72.dp a 68.dp
+                .size(50.dp) // REDUCIDO Ligeramente de 72.dp a 68.dp
                 .clip(CircleShape)
                 .background(Color.White)
                 .border(2.dp, TextoCardColor, CircleShape),
