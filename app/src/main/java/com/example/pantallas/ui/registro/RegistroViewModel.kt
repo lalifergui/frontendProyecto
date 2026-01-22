@@ -2,37 +2,41 @@ package com.example.pantallas.ui.registro
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import com.example.pantallas.data.model.UsuarioDTO
-import kotlinx.coroutines.flow.combine
+import com.example.pantallas.data.model.UsuarioRegisterDTO
+import com.example.pantallas.data.network.RetrofitClient
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+
 class RegistroViewModel : ViewModel() {
-    private val _usuario = MutableStateFlow(UsuarioDTO())
-    val usuario: StateFlow<UsuarioDTO> = _usuario
+    // Usamos UsuarioRegisterDTO para incluir el password
+    private val _usuario = MutableStateFlow(UsuarioRegisterDTO("", ""))
+    val usuario: StateFlow<UsuarioRegisterDTO> = _usuario.asStateFlow()
+    private val _usuarioIdGenerado = MutableStateFlow<Long?>(null)
+    val usuarioIdGenerado: StateFlow<Long?> = _usuarioIdGenerado.asStateFlow()
+
+    private val _estaCargando = MutableStateFlow(false)
+    val estaCargando: StateFlow<Boolean> = _estaCargando.asStateFlow()
 
     private val _errorEmail = MutableStateFlow(false)
-    val errorEmail: StateFlow<Boolean> = _errorEmail
+    val errorEmail: StateFlow<Boolean> = _errorEmail.asStateFlow()
 
     private val _errorPassword = MutableStateFlow(false)
-    val errorPassword: StateFlow<Boolean> = _errorPassword
+    val errorPassword: StateFlow<Boolean> = _errorPassword.asStateFlow()
 
-    // Lógica para habilitar el botón solo con todos los campos llenos y sin errores
-    val botonHabilitado = combine(
-        _usuario, _errorPassword, _errorEmail
-    ) { dto, errPassword, errEmail ->
-        // Comprobamos que ABSOLUTAMENTE todos los campos tengan texto
-        val camposLlenos =
-                dto.email.isNotBlank() &&
-                dto.password.isNotBlank()
+    private val _registroExitoso = MutableStateFlow(false)
+    val registroExitoso: StateFlow<Boolean> = _registroExitoso.asStateFlow()
 
-        val noErrores = !errPassword && !errEmail
+    val botonHabilitado: StateFlow<Boolean> = combine(
+        _usuario, _errorEmail, _errorPassword
+    ) { user, errE, errP ->
+        user.email.isNotBlank() && user.password.length >= 4 && !errE && !errP
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-        camposLlenos && noErrores
-    }
-
-    fun actualizarUsuario(nuevoUsuario: UsuarioDTO) {
+    fun actualizarUsuario(nuevoUsuario: UsuarioRegisterDTO) {
         _usuario.value = nuevoUsuario
+        validarEmail(nuevoUsuario.email)
+        validarPassword(nuevoUsuario.password)
     }
 
     private fun validarEmail(input: String) {
@@ -44,11 +48,23 @@ class RegistroViewModel : ViewModel() {
         _errorPassword.value = input.isNotEmpty() && input.length < 4
     }
 
-    init {
+    fun registrar() {
         viewModelScope.launch {
-            _usuario.collect { dto ->
-                validarPassword(dto.password)
-                validarEmail(dto.email)
+            _estaCargando.value = true
+            try {
+                val response = RetrofitClient.usuarioApi.registrar(_usuario.value)
+
+                if (response.isSuccessful && response.body() != null) {
+                    //  Guardamos el ID real que viene de MySQL
+                    _usuarioIdGenerado.value = response.body()?.id
+                } else {
+                    _usuarioIdGenerado.value = null
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _usuarioIdGenerado.value = null
+            } finally {
+                _estaCargando.value = false
             }
         }
     }

@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.ui.registro.Registrar
+import com.example.pantallas.ui.principal.Principal
 import com.example.pantallas.R
 
 class Login : ComponentActivity() {
@@ -42,10 +44,6 @@ class Login : ComponentActivity() {
                 onRegisterClick = {
                     val intento = Intent(this, Registrar::class.java)
                     startActivity(intento)
-                },
-                onGoogleClick = {
-                    // Aquí irá la lógica de autenticación con Google más adelante
-                    println("Login con Google presionado")
                 }
             )
         }
@@ -55,33 +53,48 @@ class Login : ComponentActivity() {
 @Composable
 fun PantallaLogin(
     viewModel: LoginViewModel = viewModel(),
-    onLoginClick: () -> Unit = {},
-    onForgotPasswordClick: () -> Unit = {},
-    onRegisterClick: () -> Unit = {},
-    onGoogleClick: () -> Unit = {}
+    onRegisterClick: () -> Unit = {}
 ) {
-    LoginScreen(viewModel, onLoginClick, onForgotPasswordClick, onRegisterClick, onGoogleClick)
+    val context = LocalContext.current
+    val loginResult by viewModel.loginResult.collectAsState()
+
+    // Navegación al tener éxito con MySQL
+    LaunchedEffect(loginResult) {
+        if (loginResult != null) {
+            val intent = Intent(context, Principal::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            context.startActivity(intent)
+        }
+    }
+
+    LoginScreen(
+        viewModel = viewModel,
+        onRegisterClick = onRegisterClick
+    )
 }
 
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
-    onLoginClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {},
     onRegisterClick: () -> Unit = {},
     onGoogleClick: () -> Unit = {}
 ) {
-    val login by viewModel.login.collectAsState()
-    var passwordVisible by remember { mutableStateOf(false) }
-    val botonHabilitado by viewModel.botonHabilitado.collectAsState(initial = false)
-    val errorUsuario by viewModel.errorUsuario.collectAsState()
+    // 🎯 Observamos variables individuales según tu ViewModel profesional
+    val email by viewModel.email.collectAsState()
+    val password by viewModel.password.collectAsState()
+    val errorEmail by viewModel.errorEmail.collectAsState()
     val errorPassword by viewModel.errorPassword.collectAsState()
+    val botonHabilitado by viewModel.botonHabilitado.collectAsState(initial = false)
+
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .systemBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(25.dp))
@@ -96,20 +109,22 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(40.dp))
 
+        // 🎯 Campo amoldado a onEmailChanged
         MiTextField(
-            value = login.usuario,
-            onValueChange = { nuevoEmail -> viewModel.actualizarLogin(login.copy(usuario = nuevoEmail)) },
+            value = email,
+            onValueChange = { viewModel.onEmailChanged(it) },
             label = "Email",
-            isError = errorUsuario,
+            isError = errorEmail,
             leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Icono Email") },
-            errorMessage = "Usuario inválido, ingrese un email correcto."
+            errorMessage = "Email inválido."
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // 🎯 Campo amoldado a onPasswordChanged
         OutlinedTextField(
-            value = login.password,
-            onValueChange = { nuevoPassword -> viewModel.actualizarLogin(login.copy(password = nuevoPassword)) },
+            value = password,
+            onValueChange = { viewModel.onPasswordChanged(it) },
             label = { Text("Contraseña") },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
@@ -126,7 +141,7 @@ fun LoginScreen(
             singleLine = true,
             supportingText = {
                 if (errorPassword) {
-                    Text(text = "Contraseña inválida.", color = MaterialTheme.colorScheme.error)
+                    Text(text = "Mínimo 4 caracteres.", color = MaterialTheme.colorScheme.error)
                 }
             }
         )
@@ -134,11 +149,13 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = onLoginClick,
+            onClick = { viewModel.login() },
             enabled = botonHabilitado,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
         ) {
-            Text("Log in")
+            Text("Log in", color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -146,14 +163,14 @@ fun LoginScreen(
         Text(
             text = "¿Olvidaste tu contraseña?",
             color = Color(0xFF2196F3),
-            fontSize = 17.sp,
+            fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.clickable { onForgotPasswordClick() }
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        Text(text = "¿No eres miembro?", fontSize = 17.sp, fontWeight = FontWeight.Bold)
+        Text(text = "¿No eres miembro?", fontSize = 15.sp)
 
         Text(
             text = "Regístrate ahora",
@@ -165,37 +182,30 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(30.dp))
 
-        // --- DIVISOR VISUAL "O" ---
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Divider(modifier = Modifier.weight(1f), color = Color.LightGray)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.LightGray)
             Text(text = " o ", modifier = Modifier.padding(horizontal = 8.dp), color = Color.Gray)
-            Divider(modifier = Modifier.weight(1f), color = Color.LightGray)
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.LightGray)
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // --- BOTÓN DE GOOGLE ---
         OutlinedButton(
             onClick = onGoogleClick,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
+            shape = RoundedCornerShape(8.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    painter = painterResource(id = R.drawable.g), // Asegúrate de añadir este drawable
+                    painter = painterResource(id = R.drawable.g),
                     contentDescription = "Google Logo",
                     tint = Color.Unspecified,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = "Continuar con Google", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                Text(text = "Continuar con Google", color = Color.Black)
             }
         }
-
         Spacer(modifier = Modifier.height(50.dp))
     }
 }
@@ -207,7 +217,6 @@ fun MiTextField(
     label: String,
     isError: Boolean,
     errorMessage: String,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     leadingIcon: (@Composable (() -> Unit))? = null,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -215,10 +224,10 @@ fun MiTextField(
             value = value,
             onValueChange = onValueChange,
             label = { Text(label) },
-            keyboardOptions = keyboardOptions,
             isError = isError,
             leadingIcon = leadingIcon,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
         )
         if (isError) {
             Text(
@@ -230,7 +239,6 @@ fun MiTextField(
         }
     }
 }
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewLoginScreen() {

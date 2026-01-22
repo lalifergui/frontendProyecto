@@ -2,14 +2,16 @@
 
 package com.example.pantallas.modelos
 
+import Usuario
+
 data class Perfil(
-    val perfil_id: Long,
+    val perfil_id: Long=0L,
     val nombre: String,
     val apellidos: String,
     val fechaNacimiento: String,
     val ciudad: String,
     val fotoPerfil: String? = null,
-    val usuario: Usuario
+    val usuario: Usuario? = null
 ) {
     // Definimos un objeto Perfil de ejemplo para usarlo en el ViewModel
     companion object {
@@ -21,8 +23,7 @@ data class Perfil(
             password = "hashed_password", // Nunca guardes contraseñas reales así
             perfil = null, // Para evitar un bucle de referencia, lo ponemos a null aquí
             biblioteca = null,
-            categorias = emptyList(),
-            usuariosFavoritos = emptyList()
+            
         )
 
         val PerfilEjemplo = Perfil(

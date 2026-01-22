@@ -1,5 +1,7 @@
 package com.example.pantallas.modelos
 
+import Usuario
+
 data class Biblioteca(
     val id: Long,
     val usuario: Usuario?,

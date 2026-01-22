@@ -4,62 +4,54 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.pantallas.data.network.RetrofitClient
 import com.example.pantallas.modelos.Perfil
-import com.example.pantallas.modelos.Usuario // Asegúrate de importar Usuario
+import kotlinx.coroutines.launch
 
 class PerfilViewModel : ViewModel() {
 
-    // 1. ESTADO OBSERVABLE DEL PERFIL
-    // Los Composables que lean esta variable se actualizarán automáticamente
-    // cuando se modifique el valor (por ejemplo, después de una edición).
-    var perfil: Perfil by mutableStateOf(Perfil.PerfilEjemplo)
+    // 1. ESTADO OBSERVABLE: Se inicializa con valores vacíos para evitar datos de ejemplo
+    var perfil: Perfil by mutableStateOf(Perfil(0L, "", "", "", ""))
         private set
-    // 'private set' asegura que solo las funciones de este ViewModel pueden cambiar el estado.
 
-    // 2. LÓGICA DE CARGA DE DATOS
+    var estaCargando by mutableStateOf(false)
+        private set
+
+    // 2. CARGA DE DATOS REALES DESDE EL BACKEND
     /**
-     * Simula la obtención de los datos del perfil (por ejemplo, desde una API o DB).
-     * @param perfilId El ID del perfil a cargar.
+     * Obtiene los datos reales del perfil desde MySQL a través del backend.
+     * Se debe llamar al iniciar la pantalla.
      */
-    fun cargarPerfil(perfilId: Long) {
-        // En una aplicación real (Producción):
-        // 1. Usarías viewModelScope.launch { ... } (Coroutines)
-        // 2. Llamarías a tu Repositorio para obtener los datos.
-        // 3. Asignarías el resultado a la variable 'perfil'.
+    fun cargarPerfilReal(usuarioId: Long) {
+        viewModelScope.launch {
+            estaCargando = true
+            try {
+                //Consultamos al PerfilController de Java
+                val response = RetrofitClient.usuarioApi.getPerfil(usuarioId)
 
-        // SIMULACIÓN actual: Cargar el perfil de ejemplo.
-        if (perfilId == Perfil.PerfilEjemplo.perfil_id) {
-            perfil = Perfil.PerfilEjemplo
+                if (response.isSuccessful) {
+                    response.body()?.let { datos ->
+                        perfil = Perfil(
+                            perfil_id = datos.perfilId ?: 0L,
+                            nombre = datos.nombre,
+                            apellidos = datos.apellidos,
+                            fechaNacimiento = datos.fechaNacimiento,
+                            ciudad = datos.ciudad
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                // Si hay error (ej: servidor apagado), mostramos el ejemplo para que no crashee
+                perfil = Perfil.PerfilEjemplo
+            } finally {
+                estaCargando = false
+            }
         }
-        // Podrías añadir lógica para cargar un perfil diferente o manejar un error.
     }
 
-    // 3. LÓGICA DE ACTUALIZACIÓN DE DATOS
-    /**
-     * Se llama desde la pantalla de edición (EditarPerfil) para guardar los cambios.
-     * @param nuevoNombre Nuevo valor del nombre.
-     * @param nuevosApellidos Nuevo valor de los apellidos.
-     * @param nuevaCiudad Nuevo valor de la ciudad.
-     * // Puedes añadir más parámetros aquí
-     */
-    fun actualizarPerfil(
-        nuevoNombre: String,
-        nuevosApellidos: String,
-        nuevaCiudad: String
-    ) {
-        // Creamos una copia del objeto 'Perfil' actual, modificando solo los campos necesarios.
-        val perfilActualizado = perfil.copy(
-            nombre = nuevoNombre,
-            apellidos = nuevosApellidos,
-            ciudad = nuevaCiudad
-            // El resto de campos (fechaNacimiento, usuario) se mantienen iguales.
-        )
-
-        // Actualizamos el estado. Esto causa la Recomposición de la UI.
-        perfil = perfilActualizado
-
-        // En una aplicación real (Producción):
-        // 1. Después de actualizar el estado local, deberías llamar a tu Repositorio
-        //    para persistir estos cambios en la base de datos o el backend.
+    // 3. ACTUALIZACIÓN LOCAL (Opcional si ya guardas en EditarPerfil)
+    fun actualizarEstadoLocal(nuevoPerfil: Perfil) {
+        perfil = nuevoPerfil
     }
 }

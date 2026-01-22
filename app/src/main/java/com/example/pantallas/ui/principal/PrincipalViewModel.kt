@@ -5,94 +5,77 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pantallas.modelos.Biblioteca
 import com.example.pantallas.modelos.Libro
 import com.example.pantallas.modelos.Categoria
+import com.example.pantallas.modelos.Perfil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+// Clase auxiliar para agrupar los datos que se muestran en la tarjeta
+data class PerfilUsuarioSugerido(
+    val perfil: Perfil,
+    val biblioteca: Biblioteca
+)class PrincipalViewModel : ViewModel() {
 
-class PrincipalViewModel : ViewModel() {
-
-    // --- ESTADO DE LA VISTA ---
-    var libroActual: Libro? by mutableStateOf(null)
+    //ESTADO PRINCIPAL: El usuario (con su biblioteca) que estamos explorando
+    var usuarioSugerido: PerfilUsuarioSugerido? by mutableStateOf(null)
         private set
 
     var isLoading: Boolean by mutableStateOf(true)
         private set
 
-    // ID de la biblioteca que estamos viendo
-    var bibliotecaActualId: Long by mutableStateOf(1L)
-        private set
-
-    // 🎯 NUEVO: Estado para la categoría seleccionada
     var categoriaSeleccionada: Categoria? by mutableStateOf(null)
         private set
 
     init {
-        cargarSiguienteLibro()
+        cargarSiguientePerfil()
     }
 
-    // --- LÓGICA DE FILTRADO ---
-
-    /**
-     * Se llama desde el Dropdown de la UI para aplicar el filtro
-     */
     fun filtrarPorCategoria(categoria: Categoria) {
         categoriaSeleccionada = categoria
-        // Al cambiar el filtro, reiniciamos la búsqueda desde la primera biblioteca disponible con esa categoría
-        bibliotecaActualId = 1L
-        cargarSiguienteLibro()
+        cargarSiguientePerfil()
     }
 
-    // --- LÓGICA DE SWIPE ---
-
-    fun likeLibro(libro: Libro, usuarioTargetId: Long) {
+    fun likeUsuario(perfil: Perfil) {
         viewModelScope.launch {
-            println("Guardando usuario $usuarioTargetId en favoritos.")
-            transicionarASiguienteBiblioteca()
-            cargarSiguienteLibro()
+            // Aquí llamarías a tu repositorio para guardar el ID del usuario en favoritos
+            println("Añadido ${perfil.nombre} a favoritos")
+            cargarSiguientePerfil()
         }
     }
 
-    fun dislikeLibro() {
-        viewModelScope.launch {
-            println("Libro descartado. Pasando a la siguiente biblioteca.")
-            transicionarASiguienteBiblioteca()
-            cargarSiguienteLibro()
-        }
+    fun dislikeUsuario() {
+        cargarSiguientePerfil()
     }
 
-    private fun transicionarASiguienteBiblioteca() {
-        bibliotecaActualId += 1
-    }
-
-    /**
-     * Carga el próximo libro respetando el filtro de categoría si existe.
-     */
-    private fun cargarSiguienteLibro() {
+    private fun cargarSiguientePerfil() {
         viewModelScope.launch {
             isLoading = true
-
-            // Simulación de delay de red
             delay(500)
 
-            //  LÓGICA DE CATEGORÍA:
-            // Si hay una categoría seleccionada, el libro generado la usará.
-            // En un caso real, aquí harías: repositorio.getLibro(bibliotecaId, categoriaId)
+            val cat = categoriaSeleccionada ?: Categoria(0, "General")
 
-            val categoriaParaElLibro = categoriaSeleccionada ?: Categoria(id = 0, nombre = "General")
-
-            val newId = bibliotecaActualId * 100 + (0..10).random()
-
-            libroActual = Libro(
-                id = newId.toLong(),
-                titulo = "Libro de ${categoriaParaElLibro.nombre} (User ${bibliotecaActualId})",
-                autor = "Autor de ${categoriaParaElLibro.nombre}",
-                portada = "",
-                categoria = categoriaParaElLibro
+            // SOLUCIÓN: Usamos Perfil.PerfilEjemplo y modificamos solo lo necesario
+            usuarioSugerido = PerfilUsuarioSugerido(
+                perfil = Perfil.PerfilEjemplo.copy(
+                    perfil_id = (1..1000).random().toLong(),
+                    nombre = "Usuario ${(10..99).random()}"
+                    // No ponemos bio porque no existe en tu modelo.
+                    // apellidos, ciudad, etc., se mantienen los del ejemplo.
+                ),
+                biblioteca = Biblioteca(
+                    id = (1..1000).random().toLong(),
+                    usuario = null,
+                    librosRecomendados = listOf(
+                        Libro(1, "Donde los Árboles Cantan", "Laura Gallego", "", cat)
+                    ),
+                    librosLeidos = listOf(
+                        Libro(2, "Reina Roja", "Juan Gómez-Jurado", "", cat)
+                    ),
+                    librosFuturasLecturas = emptyList()
+                )
             )
-
             isLoading = false
-            println("Cargado libro de categoría: ${categoriaParaElLibro.nombre}")
         }
     }
 }

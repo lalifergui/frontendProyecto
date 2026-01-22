@@ -1,15 +1,21 @@
 package com.example.pantallas.data.repository
 
 import com.example.pantallas.data.network.RetrofitClient
-import com.example.pantallas.data.model.LoginRequest
-import com.example.pantallas.data.model.LoginResponse
+import com.example.pantallas.data.model.LoginRequestDTO
+import com.example.pantallas.data.model.UsuarioDTO
+import retrofit2.Response
 
 class LoginRepositorio {
-    private  val api= RetrofitClient.loginApi
+    // Usamos 'usuarioApi' definido en RetrofitClient
+    private val api = RetrofitClient.usuarioApi
 
-    suspend fun login(usuario:String, password:String): LoginResponse{
-        val request = LoginRequest(usuario,password)
-        return  api.login(request)
+    /**
+     * Realiza la llamada al backend.
+     * Ahora devuelve un objeto Response para que el ViewModel pueda
+     * decidir qué hacer si hay un error 400 o 404.
+     */
+    suspend fun login(email: String, password: String): Response<UsuarioDTO> {
+        val request = LoginRequestDTO(email, password)
+        return api.login(request)
     }
-
 }

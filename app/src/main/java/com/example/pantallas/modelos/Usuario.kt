@@ -1,11 +1,12 @@
-package com.example.pantallas.modelos
+import com.example.pantallas.modelos.Biblioteca
+import com.example.pantallas.modelos.Perfil
 
+// com.example.pantallas.modelos.Usuario.kt
 data class Usuario(
-    val usuario_id: Long,
+    val usuario_id: Long, // Debe coincidir con el nombre en Java
     val email: String,
     val password: String,
-    val perfil: Perfil?,
-    val biblioteca: Biblioteca?,
-    val categorias: List<Categoria> = emptyList(),
-    val usuariosFavoritos: List<Usuario> = emptyList()
+    // Usamos DTOs o los modelos correspondientes
+    val perfil: Perfil? = null,
+    val biblioteca: Biblioteca? = null
 )

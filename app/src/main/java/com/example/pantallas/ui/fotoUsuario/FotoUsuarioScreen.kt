@@ -30,8 +30,23 @@ import com.example.pantallas.util.CardPerfil
 class FotoUsuario : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 1. Extraemos los datos del Intent
+        val nombre = intent.getStringExtra("nombre") ?: ""
+        val apellidos = intent.getStringExtra("apellidos") ?: ""
+        val ciudad = intent.getStringExtra("ciudad") ?: ""
+        val fecha = intent.getStringExtra("fecha") ?: ""
+
         setContent {
-            FotoUsuarioScreen()
+            // 2. Obtenemos el ViewModel
+            val viewModel: FotoUsuarioViewModel = viewModel()
+
+            // 3. Pasamos los datos al ViewModel antes de mostrar la pantalla
+            LaunchedEffect(Unit) {
+                viewModel.setDatosPerfil(nombre, apellidos, ciudad, fecha)
+            }
+
+            FotoUsuarioScreen(viewModel)
         }
     }
 }

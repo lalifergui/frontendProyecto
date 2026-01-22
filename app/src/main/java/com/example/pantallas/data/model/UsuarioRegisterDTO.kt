@@ -1,6 +1,6 @@
 package com.example.pantallas.data.model
 
-data class LoginRequest(
-    val usuario: String,
+data class UsuarioRegisterDTO(
+    val email: String,
     val password: String
 )

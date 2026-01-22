@@ -269,13 +269,14 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
         Spacer(modifier = Modifier.height(32.dp))
 
         // --- BOTONES INFERIORES ---
+        // --- BOTONES INFERIORES ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Botón Salir
+            // Botón Salir (Este ya lo tenías bien)
             OutlinedButton(
                 onClick = { mostrarAlertaSalir = true },
                 modifier = Modifier.weight(1f),
@@ -284,12 +285,13 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
                 Text("Salir")
             }
 
-            // Botón Guardar
+            // Botón Guardar (MODIFICADO AQUÍ)
             Button(
                 onClick = {
-                    val intent = Intent(context, Perfil::class.java)
+                    //CAMBIO: Asegúrate de importar com.example.pantallas.ui.perfil.Perfil
+                    val intent = Intent(context, com.example.pantallas.ui.perfil.Perfil::class.java)
 
-                    // Limpia la pila de actividades para que el registro se considere finalizado
+                    // Estas flags limpian la pila para que no puedas volver atrás con el botón del móvil
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
                     context.startActivity(intent)

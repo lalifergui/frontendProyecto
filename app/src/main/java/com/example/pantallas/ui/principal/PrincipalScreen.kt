@@ -128,7 +128,7 @@ fun PrincipalScreen(
                         null,
                         Modifier
                             .size(30.dp)
-                            .clickable { principalViewModel.dislikeLibro() },
+                            .clickable { principalViewModel.dislikeUsuario() },
                         tint = Color.Unspecified
                     )
                     Icon(

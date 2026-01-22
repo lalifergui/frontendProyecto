@@ -4,8 +4,8 @@ data class PerfilDTO(
     val perfilId: Long? = null,
     val nombre: String,
     val apellidos: String,
-    val fechaNacimiento: String, // o LocalDate si quieres manejarlo como fecha
+    val fechaNacimiento: String, // El backend envía LocalDate, Retrofit lo leerá como String
     val ciudad: String,
     val fotoPerfil: String?,
-    val usuarioId: Long
+    val usuario: UsuarioDTO? = null
 )

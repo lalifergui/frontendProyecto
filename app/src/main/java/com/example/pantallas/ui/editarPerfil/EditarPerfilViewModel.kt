@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pantallas.data.model.PerfilDTO
+import com.example.pantallas.data.model.PerfilUpdateDTO
 import com.example.pantallas.data.network.RetrofitClient
 import kotlinx.coroutines.launch
 
@@ -43,26 +44,60 @@ class EditarPerfilViewModel : ViewModel() {
             }
         }
     }
+    fun cargarDatosParaEditar(usuarioId: Long) {
+        viewModelScope.launch {
+            estaCargando = true
+            try {
+                // Usamos perfilApi que ya devuelve Response<PerfilDTO>
+                val response = RetrofitClient.perfilApi.getPerfil(usuarioId)
+
+                if (response.isSuccessful) {
+                    response.body()?.let { p ->
+                        nombre = p.nombre
+                        apellidos = p.apellidos
+                        ciudad = p.ciudad
+                        fechaNacimiento = p.fechaNacimiento
+                    }
+                }
+            } catch (e: Exception) {
+                mensajeError = "Error al cargar datos"
+            } finally {
+                estaCargando = false
+            }
+        }
+    }
+    fun limpiarCampos(){
+        nombre=""
+        apellidos=""
+        ciudad=""
+        fechaNacimiento=""
+    }
+
 
     // Función para guardar los cambios
-    fun actualizarPerfil(usuarioId: Long) {
-        val perfilEditado = PerfilDTO(
+
+    fun actualizarPerfil(usuarioId: Long, onSuccess: () -> Unit) {
+        val dto = PerfilUpdateDTO(
             nombre = nombre,
             apellidos = apellidos,
-            fechaNacimiento = fechaNacimiento,
+            fechaNacimiento = fechaNacimiento, // Asegúrate que el formato sea YYYY-MM-DD para Java LocalDate
             ciudad = ciudad,
-            fotoPerfil = fotoPerfil,
-            usuarioId = usuarioId
+            fotoPerfil = fotoPerfil
         )
-
 
         viewModelScope.launch {
             try {
-                // Aquí llamarías a tu repositorio o API directamente
-                // RetrofitClient.perfilApi.actualizarPerfil(perfilEditado)
-                println("Perfil enviado: $perfilEditado")
+                estaCargando = true
+                val response = RetrofitClient.perfilApi.actualizarPerfil(usuarioId, dto)
+                if (response.isSuccessful) {
+                    onSuccess() // Si el servidor responde OK, ejecutamos la navegación
+                } else {
+                    mensajeError = "Error del servidor al guardar"
+                }
             } catch (e: Exception) {
-                mensajeError = "No se pudo actualizar el perfil"
+                mensajeError = "Error de red: ${e.message}"
+            } finally {
+                estaCargando = false
             }
         }
     }

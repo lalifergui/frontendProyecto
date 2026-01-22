@@ -1,71 +1,84 @@
 package com.example.pantallas.ui.login
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.pantallas.data.model.LoginDTO
-import com.example.pantallas.data.model.LoginResponse
-import com.example.pantallas.data.repository.LoginRepositorio
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import com.example.pantallas.data.model.LoginRequestDTO
+import com.example.pantallas.data.model.UsuarioDTO
+import com.example.pantallas.data.network.RetrofitClient
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
+class LoginViewModel : ViewModel() {
 
-class LoginViewModel : ViewModel(
+    private val _email = MutableStateFlow("")
+    val email: StateFlow<String> = _email.asStateFlow()
 
-){
-    private val _login=MutableStateFlow(LoginDTO())
-    val login: StateFlow<LoginDTO> = _login
-    private val _errorUsuario = MutableStateFlow(false)
-    val errorUsuario: StateFlow<Boolean> = _errorUsuario
+    private val _password = MutableStateFlow("")
+    val password: StateFlow<String> = _password.asStateFlow()
+
+    private val _errorEmail = MutableStateFlow(false)
+    val errorEmail = _errorEmail.asStateFlow()
+
     private val _errorPassword = MutableStateFlow(false)
-    val errorPassword: StateFlow<Boolean> = _errorPassword
-    //necesitamos inyectar el LoginRepositorio
-    private  val repository = LoginRepositorio()
-    private  val _loginResult = MutableStateFlow<LoginResponse?>(null)
-    val loginResult: StateFlow<LoginResponse?> get() = _loginResult
+    val errorPassword = _errorPassword.asStateFlow()
 
-    fun actualizarLogin(nuevoLogin: LoginDTO){
-        _login.value=nuevoLogin
-    }
-    val botonHabilitado= combine(
-        _login,_errorUsuario,_errorPassword
-    ){l->
-        val dto = l[0] as LoginDTO
-        val errEmail=l[1] as Boolean
-        val errPassword=l[2] as Boolean
-        val camposLlenos= dto.usuario.isNotBlank()==true&& dto.password.isNotBlank()==true
-        val errores= !errPassword && !errEmail
+    // Nuevo estado para errores de credenciales (400, 401, 404)
+    private val _errorLogin = MutableStateFlow<String?>(null)
+    val errorLogin: StateFlow<String?> = _errorLogin.asStateFlow()
 
-        camposLlenos && errores
+    val botonHabilitado: StateFlow<Boolean> = combine(
+        _email, _password, _errorEmail, _errorPassword
+    ) { email, pass, errE, errP ->
+        email.isNotBlank() && pass.isNotBlank() && !errE && !errP
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    private val _loginResult = MutableStateFlow<UsuarioDTO?>(null)
+    val loginResult = _loginResult.asStateFlow()
+
+    fun onEmailChanged(nuevoEmail: String) {
+        _email.value = nuevoEmail
+        _errorLogin.value = null // Limpia error al escribir
+        validarEmail(nuevoEmail)
     }
+
+    fun onPasswordChanged(nuevaPass: String) {
+        _password.value = nuevaPass
+        _errorLogin.value = null // Limpia error al escribir
+        validarPassword(nuevaPass)
+    }
+
     private fun validarEmail(input: String) {
         val regexEmail = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$".toRegex()
-        _errorUsuario.value = input.isNotEmpty() && !regexEmail.matches(input)
+        _errorEmail.value = input.isNotEmpty() && !regexEmail.matches(input)
     }
+
     private fun validarPassword(input: String) {
         _errorPassword.value = input.isNotEmpty() && input.length < 4
     }
-    init {
-        // Observa los cambios de los inputs y actualiza los estados de error
+
+    fun login() {
         viewModelScope.launch {
-            _login.collect { log ->
-                validarEmail(input = log.usuario)
-                validarPassword(input = log.password)
+            try {
+                _errorLogin.value = null
+                val request = LoginRequestDTO(email = _email.value, password = _password.value)
+
+                // Realizamos la llamada usando .login() que ahora devuelve Response<UsuarioDTO>
+                val response = RetrofitClient.usuarioApi.login(request)
+
+                if (response.isSuccessful) {
+
+                    _loginResult.value = response.body()
+                } else {
+
+                    _errorLogin.value = "Correo o contraseña incorrectos"
+                    _loginResult.value = null
+                }
+            } catch (e: Exception) {
+                //  ERROR DE RED (Servidor apagado, sin internet)
+                e.printStackTrace()
+                _errorLogin.value = "Error de conexión con el servidor"
+                _loginResult.value = null
             }
         }
     }
-    /**
-     *  fun login(){
-     *         viewModelScope.launch {
-     *             try {
-     *                 val response = repository.login(usuario.value, password.value)
-     *                 _loginResult.value = response
-     *             }catch (e: Exception){
-     *                 e.printStackTrace()
-     *                 _loginResult.value = null
-     *             }
-     *         }
-     *     }
-     */
-
 }

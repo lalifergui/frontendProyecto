@@ -29,7 +29,6 @@ import com.example.pantallas.ui.biblioteca.BibliotecaContenido
 import com.example.pantallas.ui.editarPerfil.EditarPerfil
 import com.example.pantallas.util.CardPerfil
 import com.example.pantallas.util.Menu
-import kotlinx.coroutines.delay
 
 class Perfil : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,11 +41,14 @@ class Perfil : ComponentActivity() {
 @Composable
 fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
     val context = LocalContext.current
-    val perfilData = perfilViewModel.perfil
-    val activity = (context as? Activity)
-    val esNuevoRegistro = remember { activity?.intent?.getBooleanExtra("NUEVO_REGISTRO", false) ?: false }
-    var mostrarAviso by remember { mutableStateOf(esNuevoRegistro) }
 
+    val activity = (context as? Activity)
+
+    // 1. CARGA DINÁMICA: Cuando se inicia la pantalla, pedimos los datos al servidor
+    LaunchedEffect(Unit) {
+        // Usamos el ID del usuario (debería venir del login, por ahora usamos 1L)
+        perfilViewModel.cargarPerfilReal(usuarioId = 1L)
+    }
 
     Column(
         modifier = Modifier
@@ -67,13 +69,24 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
                 imageVector = Icons.Filled.Edit,
                 contentDescription = "Editar Perfil",
                 modifier = Modifier.size(36.dp).clickable {
-                    context.startActivity(Intent(context, EditarPerfil::class.java))
+                   val intent = Intent(context, EditarPerfil::class.java)
+                    intent.putExtra("Edicion",true)
+                    context.startActivity(intent)
                 }
             )
         }
 
         Spacer(modifier = Modifier.height(25.dp))
-        CardPerfil(perfil = perfilData)
+
+        // 2. ESTADO DE CARGA: Si el ViewModel está trabajando, mostramos un indicador
+        if (perfilViewModel.estaCargando) {
+            Box(modifier = Modifier.height(100.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        } else {
+            // 3. DATOS REALES: Mostramos la Card con la información que devolvió MySQL
+            CardPerfil(perfil = perfilViewModel.perfil)
+        }
 
         Spacer(modifier = Modifier.height(25.dp))
 
@@ -99,6 +112,13 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewPerfilScreen() { PerfilAnyadir() }
+/**
+ * @Preview(showBackground = true, showSystemUi = true)
+ * @Composable
+ * fun PreviewPerfilScreen() {
+ *     // Creamos un ViewModel "falso" o simplemente no llamamos a la carga real en el preview
+ *     val vm = PerfilViewModel()
+ *     // No llamamos a cargarPerfilReal aquí para que el Preview no crashee
+ *     PerfilAnyadir(perfilViewModel = vm)
+ * }
+ */
