@@ -41,13 +41,16 @@ class Perfil : ComponentActivity() {
 @Composable
 fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
     val context = LocalContext.current
-
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val state by androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.currentStateFlow.collectAsState()
     val activity = (context as? Activity)
+    val usuarioIdReal = remember { activity?.intent?.getLongExtra("USUARIO_ID", 1L) ?: 1L }
 
     // 1. CARGA DINÁMICA: Cuando se inicia la pantalla, pedimos los datos al servidor
-    LaunchedEffect(Unit) {
-        // Usamos el ID del usuario (debería venir del login, por ahora usamos 1L)
-        perfilViewModel.cargarPerfilReal(usuarioId = 1L)
+    LaunchedEffect(state) {
+        if (state == androidx.lifecycle.Lifecycle.State.RESUMED) {
+            perfilViewModel.cargarPerfilReal(usuarioId = usuarioIdReal) //Usa aquí tu ID dinámico
+        }
     }
 
     Column(
@@ -60,7 +63,9 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
         Spacer(modifier = Modifier.height(35.dp))
 
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -68,11 +73,17 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
             Icon(
                 imageVector = Icons.Filled.Edit,
                 contentDescription = "Editar Perfil",
-                modifier = Modifier.size(36.dp).clickable {
-                   val intent = Intent(context, EditarPerfil::class.java)
-                    intent.putExtra("Edicion",true)
-                    context.startActivity(intent)
-                }
+                modifier = Modifier
+                    .size(36.dp)
+                    .clickable {
+                        val intent = Intent(context, EditarPerfil::class.java).apply {
+
+                            putExtra("Edicion", true)
+                            putExtra("USUARIO_ID", usuarioIdReal)
+                        }
+
+                        context.startActivity(intent)
+                    }
             )
         }
 
@@ -92,15 +103,19 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
 
         // --- Sección de Biblioteca ---
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.End
         ) {
             Icon(
                 imageVector = Icons.Filled.MenuBook,
                 contentDescription = "Ir a Biblioteca",
-                modifier = Modifier.size(36.dp).clickable {
-                    context.startActivity(Intent(context, Biblioteca::class.java))
-                }
+                modifier = Modifier
+                    .size(36.dp)
+                    .clickable {
+                        context.startActivity(Intent(context, Biblioteca::class.java))
+                    }
             )
         }
 

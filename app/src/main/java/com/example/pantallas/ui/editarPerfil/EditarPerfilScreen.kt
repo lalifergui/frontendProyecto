@@ -46,11 +46,11 @@ fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
     val context = LocalContext.current
     val activity = (context as? Activity)
 
-    // 🎯 ID Dinámico para no sobreescribir usuarios en MySQL
+    // ID Dinámico para no sobreescribir usuarios en MySQL
     val usuarioIdReal = remember { activity?.intent?.getLongExtra("USUARIO_ID", 1L) ?: 1L }
     val esEdicion = remember { activity?.intent?.getBooleanExtra("Edicion", false) ?: false }
 
-    // 📸 Launcher para la Galería
+    // Launcher para la Galería
     var fotoUri by remember { mutableStateOf<android.net.Uri?>(null) }
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
@@ -114,7 +114,7 @@ fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
         // CAMPOS DE TEXTO (Vinculados al ViewModel)
         PantallaConTextEditable(valor = viewModel.nombre, onTextFieldChange = { viewModel.nombre = it }, etiqueta = "Nombre")
         PantallaConTextEditable(valor = viewModel.apellidos, onTextFieldChange = { viewModel.apellidos = it }, etiqueta = "Apellidos")
-        PantallaConTextEditable(valor = viewModel.fechaNacimiento, onTextFieldChange = { viewModel.fechaNacimiento = it }, etiqueta = "Fecha (AAAA-MM-DD)")
+        PantallaConTextEditable(valor = viewModel.fechaNacimiento, onTextFieldChange = { viewModel.fechaNacimiento = it }, etiqueta = "Fecha De Nacimiento (AAAA-MM-DD)")
         PantallaConTextEditable(valor = viewModel.ciudad, onTextFieldChange = { viewModel.ciudad = it }, etiqueta = "Ciudad")
 
         Spacer(modifier = Modifier.height(40.dp))
@@ -122,21 +122,14 @@ fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
         Button(
             onClick = {
                 viewModel.actualizarPerfil(usuarioId = usuarioIdReal) {
-                    if (esEdicion) {
-                        activity?.finish()
-                    } else {
-                        val intent = Intent(context, FotoUsuario::class.java).apply {
-                            putExtra("nombre", viewModel.nombre)
-                            putExtra("apellidos", viewModel.apellidos)
-                        }
-                        context.startActivity(intent)
+                    val intent = Intent(context, FotoUsuario::class.java).apply {
+                        putExtra("USUARIO_ID", usuarioIdReal)
                     }
+                    context.startActivity(intent)
                 }
-            },
-            enabled = viewModel.botonHabilitado && !viewModel.estaCargando,
-            modifier = Modifier.fillMaxWidth(0.9f),
-            shape = RoundedCornerShape(8.dp)
-        ) {
+            }
+        )
+        {
             Text("Guardar Cambios")
         }
     }

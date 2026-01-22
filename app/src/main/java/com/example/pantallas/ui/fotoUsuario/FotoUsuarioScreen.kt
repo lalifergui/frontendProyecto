@@ -32,6 +32,7 @@ class FotoUsuario : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // 1. Extraemos los datos del Intent
+        val usuarioId = intent.getLongExtra("USUARIO_ID", 1L)
         val nombre = intent.getStringExtra("nombre") ?: ""
         val apellidos = intent.getStringExtra("apellidos") ?: ""
         val ciudad = intent.getStringExtra("ciudad") ?: ""
