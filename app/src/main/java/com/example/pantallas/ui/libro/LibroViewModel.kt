@@ -1,35 +1,26 @@
+package com.example.pantallas.ui.libro
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.pantallas.data.repository.LibroRepositorio
+// CORRECCIÓN: Solo un import de RetrofitClient (Asegúrate que la ruta es correcta)
+import com.example.pantallas.data.network.RetrofitClient
 import com.example.pantallas.modelos.Categoria
 import com.example.pantallas.modelos.Libro
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+// Clase auxiliar para enviar al backend
+data class LibroCreateRequest(
+    val titulo: String,
+    val autor: String,
+    val portada: String? = "",
+    val categoriaId: Long
+)
+
 class LibroViewModel : ViewModel() {
 
-    private val repositorio = LibroRepositorio()
-
-    // 🎯 Lista de libros de ejemplo iniciales
-    private val librosEjemplo = listOf(
-        Libro(1, "Donde los Árboles Cantan", "Laura Gallego", "", Categoria(1, "Fantasía")),
-        Libro(2, "El nombre del viento", "Patrick Rothfuss", "", Categoria(1, "Fantasía")),
-        Libro(3, "Reina Roja", "Juan Gómez-Jurado", "", Categoria(2, "Thriller")),
-        Libro(
-            4,
-            "Cien años de soledad",
-            "Gabriel García Márquez",
-            "",
-            Categoria(3, "Realismo Mágico")
-        ),
-        Libro(5, "El resplandor", "Stephen King", "", Categoria(4, "Terror")),
-        Libro(6, "Hola", "Laura", "", Categoria(4, "Terror")),
-        Libro(7, "Hola", "Sandra", "", Categoria(1, "Fantasía"))
-    )
-
-    // Inicializamos con la lista de ejemplo para que no aparezca vacía al cargar
-    private val _libros = MutableStateFlow<List<Libro>>(librosEjemplo)
+    private val _libros = MutableStateFlow<List<Libro>>(emptyList())
     val libros: StateFlow<List<Libro>> get() = _libros
 
     init {
@@ -39,31 +30,66 @@ class LibroViewModel : ViewModel() {
     fun obtenerLibros() {
         viewModelScope.launch {
             try {
-                val listaServidor = repositorio.getLibros()
-                // Combinamos los ejemplos con los del servidor
-                _libros.value = librosEjemplo + listaServidor
+                // Asegúrate que 'libroApi' existe en tu RetrofitClient
+                val response = RetrofitClient.libroApi.getLibros()
+
+                if (response.isSuccessful && response.body() != null) {
+                    val listaDTO = response.body()!!
+                    _libros.value = listaDTO.map { dto ->
+                        Libro(
+                            id = dto.id ?: 0L,
+                            titulo = dto.titulo,
+                            autor = dto.autor,
+                            portada = dto.portada ?: "",
+                            // CORRECCIÓN: Usamos 0L (Long) en lugar de 0 (Int)
+                            categoria = Categoria(id = 0L, nombre = dto.categoriaNombre ?: "General")
+                        )
+                    }
+                }
             } catch (e: Exception) {
-                // Si falla el servidor, al menos se quedan los ejemplos
-                println("Error al obtener libros: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
 
-    fun agregarLibro(titulo: String, autor: String, portada: String, categoria: Categoria) {
-        val nuevoLibro = Libro(
-            id = 0,
-            titulo = titulo,
-            autor = autor,
-            portada = portada,
-            categoria = categoria
-        )
-
+    fun crearLibroManualmente(
+        titulo: String,
+        autor: String,
+        categoria: Categoria,
+        onResult: (Libro?) -> Unit
+    ) {
         viewModelScope.launch {
             try {
-                val libroCreado = repositorio.crearLibro(nuevoLibro)
-                _libros.value = _libros.value + libroCreado
+                val request = LibroCreateRequest(
+                    titulo = titulo,
+                    autor = autor,
+                    portada = "",
+                    categoriaId = categoria.id
+                )
+
+                // CORRECCIÓN: Esto funcionará ahora que actualizaste LibroApi
+                val response = RetrofitClient.libroApi.crearLibro(request)
+
+                if (response.isSuccessful && response.body() != null) {
+                    val libroCreadoDTO = response.body()!!
+
+                    val libroReal = Libro(
+                        id = libroCreadoDTO.id!!,
+                        titulo = libroCreadoDTO.titulo,
+                        autor = libroCreadoDTO.autor,
+                        portada = libroCreadoDTO.portada ?: "",
+                        categoria = categoria
+                    )
+
+                    _libros.value = _libros.value + libroReal
+                    onResult(libroReal)
+                } else {
+                    println("Error backend: ${response.code()}")
+                    onResult(null)
+                }
             } catch (e: Exception) {
-                println("Error al agregar libro: ${e.message}")
+                e.printStackTrace()
+                onResult(null)
             }
         }
     }

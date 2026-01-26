@@ -28,6 +28,12 @@ object RetrofitClient {
     val libroApi: LibroApi by lazy {
         retrofit.create(LibroApi::class.java)
     }
+    val instance: Retrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
 
     // Para guardar libros y ver la biblioteca (BibliotecaController)
     val bibliotecaApi: BibliotecaApi by lazy {

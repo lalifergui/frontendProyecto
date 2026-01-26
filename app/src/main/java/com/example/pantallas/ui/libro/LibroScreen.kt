@@ -1,6 +1,5 @@
 package com.example.pantallas.ui.libro
 
-import LibroViewModel
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -65,10 +64,15 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
 
     // Estados para el Desplegable de Categoría
     var expandido by remember { mutableStateOf(false) }
-    var categoriaSeleccionada by remember { mutableStateOf(Categoria.listaCategorias[0]) }
+    // Importante: Asegúrate de que tus categorías tengan ID (1L, 2L...)
+    var categoriaSeleccionada by remember {
+        mutableStateOf(Categoria.listaCategorias.firstOrNull() ?: Categoria(1L, "General"))
+    }
+
+    // Estado de carga para evitar pulsar el botón dos veces
+    var guardandoLibro by remember { mutableStateOf(false) }
 
     // --- LÓGICA DE FILTRADO ---
-    // Filtra la lista según lo que escriba el usuario
     val librosFiltrados = remember(estadoBusqueda, libros) {
         if (estadoBusqueda.isBlank()) libros
         else {
@@ -88,7 +92,6 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
             putExtra("LIBRO_AUTOR", libro.autor)
             putExtra("CATEGORIA_NOMBRE", libro.categoria.nombre)
         }
-        // Marcamos el resultado como OK y cerramos esta pantalla
         activity?.setResult(Activity.RESULT_OK, intent)
         activity?.finish()
     }
@@ -96,7 +99,7 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
     // --- DIÁLOGO NUEVO LIBRO ---
     if (mostrarDialogoNuevo) {
         AlertDialog(
-            onDismissRequest = { mostrarDialogoNuevo = false },
+            onDismissRequest = { if (!guardandoLibro) mostrarDialogoNuevo = false },
             title = { Text("Nuevo Libro", fontWeight = FontWeight.Bold) },
             text = {
                 Column {
@@ -159,28 +162,43 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
             },
             confirmButton = {
                 Button(
+                    enabled = !guardandoLibro,
                     onClick = {
                         if (nuevoTitulo.isNotBlank()) {
-                            // 1. Creamos el objeto libro al vuelo
-                            // Usamos ID 0 o System.currentTimeMillis() temporalmente
-                            val libroCreado = Libro(
-                                id = System.currentTimeMillis(),
+                            guardandoLibro = true
+
+                            // LLAMADA AL BACKEND A TRAVÉS DEL VIEWMODEL
+                            libroViewModel.crearLibroManualmente(
                                 titulo = nuevoTitulo,
                                 autor = nuevoAutor,
-                                portada = "",
                                 categoria = categoriaSeleccionada
-                            )
-
-                            // 2. Lo devolvemos inmediatamente a la biblioteca
-                            devolverLibroSeleccionado(libroCreado)
-
-                            mostrarDialogoNuevo = false
+                            ) { libroCreado ->
+                                guardandoLibro = false
+                                if (libroCreado != null) {
+                                    // ÉXITO: El libro ya existe en BBDD con ID real
+                                    devolverLibroSeleccionado(libroCreado)
+                                    mostrarDialogoNuevo = false
+                                } else {
+                                    // ERROR: El libro no se pudo guardar
+                                    println("Error al guardar libro en servidor")
+                                }
+                            }
                         }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6750A4))
+                ) {
+                    if(guardandoLibro) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White)
+                    } else {
+                        Text("Añadir y Seleccionar")
                     }
-                ) { Text("Añadir y Seleccionar") }
+                }
             },
             dismissButton = {
-                TextButton(onClick = { mostrarDialogoNuevo = false }) { Text("Cancelar") }
+                TextButton(
+                    onClick = { mostrarDialogoNuevo = false },
+                    enabled = !guardandoLibro
+                ) { Text("Cancelar") }
             }
         )
     }
@@ -190,7 +208,7 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .systemBarsPadding(), // Evita solapar barra estado/navegación
+            .systemBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(20.dp))
@@ -212,13 +230,13 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
         // Lista de Resultados
         LazyColumn(
             modifier = Modifier
-                .weight(1f) // Ocupa el espacio disponible
+                .weight(1f)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         ) {
             items(librosFiltrados) { libro ->
                 LibroFiltradoItem(libro) {
-                    // AL HACER CLIC EN UN LIBRO EXISTENTE
+                    // AL HACER CLIC EN UN LIBRO DE LA LISTA
                     devolverLibroSeleccionado(libro)
                 }
             }
@@ -259,7 +277,7 @@ fun LibroFiltradoItem(libro: Libro, onSelect: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onSelect() }, // Hacemos clicable toda la fila
+            .clickable { onSelect() },
         color = Color.Transparent
     ) {
         Column(modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {

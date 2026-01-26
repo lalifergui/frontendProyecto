@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.ui.biblioteca.Biblioteca
 import com.example.pantallas.ui.biblioteca.BibliotecaContenido
+import com.example.pantallas.ui.biblioteca.BibliotecaViewModel // <--- IMPORTANTE: Importar el ViewModel
 import com.example.pantallas.ui.editarPerfil.EditarPerfil
 import com.example.pantallas.util.CardPerfil
 import com.example.pantallas.util.Menu
@@ -38,7 +39,11 @@ class Perfil : ComponentActivity() {
 }
 
 @Composable
-fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
+fun PerfilAnyadir(
+    perfilViewModel: PerfilViewModel = viewModel(),
+    // 1. AÑADIMOS EL VIEWMODEL DE LA BIBLIOTECA
+    bibliotecaViewModel: BibliotecaViewModel = viewModel()
+) {
     val context = LocalContext.current
     val activity = (context as? Activity)
 
@@ -58,10 +63,14 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
         }
     }
 
-    // 2. CARGA DE DATOS DEL PERFIL
+    // 2. CARGA DE DATOS (PERFIL + BIBLIOTECA)
     LaunchedEffect(usuarioIdReal) {
         if (usuarioIdReal != -1L) {
+            // Cargar datos del usuario
             perfilViewModel.cargarPerfilReal(usuarioId = usuarioIdReal)
+
+            // 2. ¡IMPORTANTE! Cargar la biblioteca del servidor
+            bibliotecaViewModel.cargarBibliotecaReal(usuarioId = usuarioIdReal)
         }
     }
 
@@ -108,7 +117,6 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
                 CircularProgressIndicator()
             }
         } else {
-            // CardPerfil ahora muestra la foto automáticamente gracias a los cambios anteriores
             CardPerfil(
                 perfil = perfilViewModel.perfil,
                 foto = perfilViewModel.perfil.fotoPerfil
@@ -131,7 +139,6 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
                     .size(36.dp)
                     .clickable {
                         val intent = Intent(context, Biblioteca::class.java)
-                        // IMPORTANTE: Pasamos el ID para editar TU biblioteca
                         intent.putExtra("USUARIO_ID", usuarioIdReal)
                         context.startActivity(intent)
                     }
@@ -139,15 +146,18 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
         }
 
         // --- CONTENIDO DE LA BIBLIOTECA (MODO LECTURA) ---
-        // Aquí 'esModoEdicion = false' oculta los botones "+" y de borrar
         Box(modifier = Modifier.fillMaxWidth()) {
-            BibliotecaContenido(esModoEdicion = false)
+            // 3. PASAMOS EL VIEWMODEL CARGADO AL COMPONENTE
+            BibliotecaContenido(
+                viewModel = bibliotecaViewModel,
+                esModoEdicion = false
+            )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
         // ---------------------------------------------------------
-        // MENÚ INFERIOR (Con ID para no romper la navegación)
+        // MENÚ INFERIOR
         // ---------------------------------------------------------
         Menu(context, usuarioIdReal)
     }
