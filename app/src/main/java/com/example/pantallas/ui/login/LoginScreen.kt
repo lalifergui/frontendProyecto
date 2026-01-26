@@ -1,5 +1,6 @@
 package com.example.pantallas.ui.login
 
+import android.content.Context // Importante para SharedPreferences
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,7 +11,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -58,10 +58,23 @@ fun PantallaLogin(
     val context = LocalContext.current
     val loginResult by viewModel.loginResult.collectAsState()
 
-    // Navegación al tener éxito con MySQL
+    // ---------------------------------------------------------------
+    // LÓGICA DE ÉXITO Y GUARDADO DE SESIÓN
+    // ---------------------------------------------------------------
     LaunchedEffect(loginResult) {
         if (loginResult != null) {
+            // 1. GUARDAR ID EN MEMORIA (SharedPreferences)
+            // Usamos "AppPrefs" para ser consistentes con Principal.kt
+            val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+            with(sharedPref.edit()) {
+                // Asumimos que loginResult es tu objeto Usuario y tiene un campo 'id'
+                putLong("ID_USUARIO_ACTUAL", loginResult!!.id)
+                apply() // Guardar cambios
+            }
+
+            // 2. NAVEGAR A LA PANTALLA PRINCIPAL
             val intent = Intent(context, Principal::class.java)
+            // Flags para que el usuario no pueda volver al Login con el botón "Atrás"
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             context.startActivity(intent)
         }
@@ -80,7 +93,6 @@ fun LoginScreen(
     onRegisterClick: () -> Unit = {},
     onGoogleClick: () -> Unit = {}
 ) {
-    // 🎯 Observamos variables individuales según tu ViewModel profesional
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
     val errorEmail by viewModel.errorEmail.collectAsState()
@@ -94,22 +106,21 @@ fun LoginScreen(
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
-            .systemBarsPadding(),
+            .systemBarsPadding(), // Mejor usar systemBarsPadding para evitar solapamientos
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(25.dp))
         Image(
-            painter = painterResource(id = R.drawable.biblio),
+            painter = painterResource(id = R.drawable.biblio), // Asegúrate de que este recurso existe
             contentDescription = "Logo biblioswipe",
             modifier = Modifier.size(150.dp)
         )
         Spacer(modifier = Modifier.height(25.dp))
 
-        Text(text = "Log in", fontSize = 32.sp, fontWeight = FontWeight.Bold)
+        Text(text = "LOGIN", fontSize = 32.sp, fontWeight = FontWeight.Bold)
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // 🎯 Campo amoldado a onEmailChanged
         MiTextField(
             value = email,
             onValueChange = { viewModel.onEmailChanged(it) },
@@ -121,7 +132,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 🎯 Campo amoldado a onPasswordChanged
         OutlinedTextField(
             value = password,
             onValueChange = { viewModel.onPasswordChanged(it) },
@@ -155,7 +165,7 @@ fun LoginScreen(
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
         ) {
-            Text("Log in", color = Color.White)
+            Text("Login", color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -196,6 +206,7 @@ fun LoginScreen(
             shape = RoundedCornerShape(8.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                // Asegúrate de tener el icono R.drawable.g o comenta esta línea si falla
                 Icon(
                     painter = painterResource(id = R.drawable.g),
                     contentDescription = "Google Logo",
@@ -239,6 +250,7 @@ fun MiTextField(
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewLoginScreen() {

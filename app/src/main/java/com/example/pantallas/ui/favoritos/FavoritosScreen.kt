@@ -39,18 +39,21 @@ import com.example.pantallas.util.Menu
 class Favoritos : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val usuarioId = intent.getLongExtra("USUARIO_ID", -1L)
+
         enableEdgeToEdge()
         setContent {
-
-            PantallaFavoritos()
+            // 2. Se lo pasamos a la pantalla
+            PantallaFavoritos(usuarioIdRecibido = usuarioId)
         }
     }
 }
-
 @Composable
 fun PantallaFavoritos(
-
+    usuarioIdRecibido: Long,
     viewModel: FavoritosViewModel = viewModel()
+
 ) {
     val context = LocalContext.current
 
@@ -174,7 +177,7 @@ fun PantallaFavoritos(
         }
 
         Spacer(modifier = Modifier.height(10.dp))
-        Menu(context)
+        Menu(context, usuarioIdRecibido  )
     }
 }
 
@@ -250,8 +253,10 @@ fun ItemNotificacion(nota: NotificacionesFavoritos) {
     Divider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp)
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewRegistroScreenFav() {
-    PantallaFavoritos()
-}
+/**
+ * @Preview(showBackground = true, showSystemUi = true)
+ * @Composable
+ * fun PreviewRegistroScreenFav() {
+ *     PantallaFavoritos()
+ * }
+ */

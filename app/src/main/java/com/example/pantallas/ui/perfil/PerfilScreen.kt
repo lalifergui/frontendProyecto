@@ -1,6 +1,7 @@
 package com.example.pantallas.ui.perfil
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -17,10 +18,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,15 +40,27 @@ class Perfil : ComponentActivity() {
 @Composable
 fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
     val context = LocalContext.current
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    val state by androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.currentStateFlow.collectAsState()
     val activity = (context as? Activity)
-    val usuarioIdReal = remember { activity?.intent?.getLongExtra("USUARIO_ID", 1L) ?: 1L }
 
-    // 1. CARGA DINÁMICA: Cuando se inicia la pantalla, pedimos los datos al servidor
-    LaunchedEffect(state) {
-        if (state == androidx.lifecycle.Lifecycle.State.RESUMED) {
-            perfilViewModel.cargarPerfilReal(usuarioId = usuarioIdReal) //Usa aquí tu ID dinámico
+    // ---------------------------------------------------------
+    // LÓGICA DE RECUPERACIÓN DE ID SEGURA
+    // ---------------------------------------------------------
+    val usuarioIdReal = remember {
+        // 1. Intentamos obtenerlo del Intent (lo que manda el menú)
+        val idIntent = activity?.intent?.getLongExtra("USUARIO_ID", -1L) ?: -1L
+
+        if (idIntent != -1L) {
+            idIntent
+        } else {
+            // 2. Si falla, lo leemos de la Memoria Persistente
+            context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                .getLong("ID_USUARIO_ACTUAL", -1L)
+        }
+    }
+
+    LaunchedEffect(usuarioIdReal) {
+        if (usuarioIdReal != -1L) {
+            perfilViewModel.cargarPerfilReal(usuarioId = usuarioIdReal)
         }
     }
 
@@ -63,9 +74,7 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
         Spacer(modifier = Modifier.height(35.dp))
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -77,11 +86,9 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
                     .size(36.dp)
                     .clickable {
                         val intent = Intent(context, EditarPerfil::class.java).apply {
-
                             putExtra("Edicion", true)
                             putExtra("USUARIO_ID", usuarioIdReal)
                         }
-
                         context.startActivity(intent)
                     }
             )
@@ -89,23 +96,20 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
 
         Spacer(modifier = Modifier.height(25.dp))
 
-        // 2. ESTADO DE CARGA: Si el ViewModel está trabajando, mostramos un indicador
         if (perfilViewModel.estaCargando) {
             Box(modifier = Modifier.height(100.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                CircularProgressIndicator()
             }
         } else {
-            // 3. DATOS REALES: Mostramos la Card con la información que devolvió MySQL
+            // Asegúrate que tu CardPerfil acepta la URL de la foto si la tienes
             CardPerfil(perfil = perfilViewModel.perfil)
         }
 
         Spacer(modifier = Modifier.height(25.dp))
 
-        // --- Sección de Biblioteca ---
+        // Sección Biblioteca
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.End
         ) {
             Icon(
@@ -114,7 +118,10 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
                 modifier = Modifier
                     .size(36.dp)
                     .clickable {
-                        context.startActivity(Intent(context, Biblioteca::class.java))
+                        val intent = Intent(context, Biblioteca::class.java)
+                        // También pasamos ID a biblioteca por si acaso
+                        intent.putExtra("USUARIO_ID", usuarioIdReal)
+                        context.startActivity(intent)
                     }
             )
         }
@@ -123,17 +130,9 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
             BibliotecaContenido(esModoEdicion = false)
         }
 
-        Menu(context)
+        // ---------------------------------------------------------
+        // PASAR EL ID AL MENÚ PARA QUE LA NAVEGACIÓN NO SE ROMPA
+        // ---------------------------------------------------------
+        Menu(context, usuarioIdReal)
     }
 }
-
-/**
- * @Preview(showBackground = true, showSystemUi = true)
- * @Composable
- * fun PreviewPerfilScreen() {
- *     // Creamos un ViewModel "falso" o simplemente no llamamos a la carga real en el preview
- *     val vm = PerfilViewModel()
- *     // No llamamos a cargarPerfilReal aquí para que el Preview no crashee
- *     PerfilAnyadir(perfilViewModel = vm)
- * }
- */

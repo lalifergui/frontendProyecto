@@ -37,6 +37,7 @@ import com.example.pantallas.ui.libro.LibroScreen
 class Biblioteca : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val usuarioId = intent.getLongExtra("USUARIO_ID",-1L)
         enableEdgeToEdge()
         setContent { BibliotecaScreen() }
     }

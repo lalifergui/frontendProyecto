@@ -1,10 +1,10 @@
 package com.example.pantallas.ui.fotoUsuario
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -19,47 +19,38 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.example.pantallas.ui.biblioteca.Biblioteca
+import com.example.pantallas.ui.principal.Principal // IMPORTANTE: Ir a Principal, no Biblioteca
 import com.example.pantallas.util.CardPerfil
 
 class FotoUsuario : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // 1. Extraemos los datos del Intent
-        val usuarioId = intent.getLongExtra("USUARIO_ID", 1L)
+        val usuarioId = intent.getLongExtra("USUARIO_ID", -1L)
         val nombre = intent.getStringExtra("nombre") ?: ""
         val apellidos = intent.getStringExtra("apellidos") ?: ""
         val ciudad = intent.getStringExtra("ciudad") ?: ""
         val fecha = intent.getStringExtra("fecha") ?: ""
 
         setContent {
-            // 2. Obtenemos el ViewModel
             val viewModel: FotoUsuarioViewModel = viewModel()
-
-            // 3. Pasamos los datos al ViewModel antes de mostrar la pantalla
-            LaunchedEffect(Unit) {
+            remember {
                 viewModel.setDatosPerfil(nombre, apellidos, ciudad, fecha)
+                true
             }
-
-            FotoUsuarioScreen(viewModel)
+            FotoUsuarioScreen(viewModel, usuarioId)
         }
     }
 }
 
 @Composable
-fun FotoUsuarioScreen(viewModel: FotoUsuarioViewModel = viewModel()) {
+fun FotoUsuarioScreen(viewModel: FotoUsuarioViewModel, usuarioId: Long) {
     val context = LocalContext.current
     val activity = (context as? Activity)
-
-    // 1. Declaración del dispatcher para que el botón "Volver" funcione
     val backDispatcher = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
-
     val perfil by viewModel.perfil.collectAsState()
     val fotoUri by viewModel.fotoUri.collectAsState()
 
@@ -71,78 +62,54 @@ fun FotoUsuarioScreen(viewModel: FotoUsuarioViewModel = viewModel()) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = "Tu Carta de Presentación",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
-        Text(
-            text = "Esta es la previsualización de lo que verían los otros usuarios sobre tu perfil.",
-            fontSize = 14.sp,
-            color = Color.Gray,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp)
-        )
+        Text("Tu Carta de Presentación", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text("Previsualización de tu perfil.", fontSize = 14.sp, color = Color.Gray, textAlign = TextAlign.Center)
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // --- REPRESENTACIÓN DE LA CARD ---
         Box(contentAlignment = Alignment.CenterStart) {
             CardPerfil(perfil = perfil)
-
-            // Círculo de la foto (Solo vista, sin botón +)
             Box(
-                modifier = Modifier
-                    .padding(start = 16.dp)
-                    .size(68.dp),
+                modifier = Modifier.padding(start = 16.dp).size(68.dp),
                 contentAlignment = Alignment.Center
             ) {
                 if (fotoUri != null) {
                     AsyncImage(
                         model = fotoUri,
-                        contentDescription = "Foto de perfil",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape),
+                        contentDescription = "Foto",
+                        modifier = Modifier.fillMaxSize().clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
                 }
-                // Si fotoUri es null, la CardPerfil mostrará su diseño por defecto
             }
         }
 
         Spacer(modifier = Modifier.height(60.dp))
 
-        // --- BOTONES: VOLVER ATRÁS Y GUARDAR ---
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            OutlinedButton(
-                onClick = {backDispatcher?.onBackPressed()},
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("Volver a Editar")
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            OutlinedButton(onClick = { backDispatcher?.onBackPressed() }, modifier = Modifier.weight(1f)) {
+                Text("Volver")
             }
 
             Button(
                 onClick = {
-                    val intent = Intent(context, Biblioteca::class.java)
+                    // --- CORRECCIÓN CLAVE: GUARDAR ID EN MEMORIA ---
+                    val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                    with(sharedPref.edit()) {
+                        putLong("ID_USUARIO_ACTUAL", usuarioId)
+                        apply()
+                    }
+
+                    // Ir a la pantalla Principal
+                    val intent = Intent(context, Principal::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     context.startActivity(intent)
                     activity?.finish()
                 },
                 modifier = Modifier.weight(1f)
-
             ) {
                 Text("Guardar", color = Color.White)
             }
         }
     }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewFotoFinal() {
-    FotoUsuarioScreen()
 }

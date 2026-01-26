@@ -31,6 +31,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 
 class EditarPerfil : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,8 +41,7 @@ class EditarPerfil : ComponentActivity() {
             EditarPerfilVentana()
         }
     }
-}
-@Composable
+}@Composable
 fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
     val context = LocalContext.current
     val activity = (context as? Activity)
@@ -56,8 +56,8 @@ fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
         contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
     ) { uri -> fotoUri = uri }
 
-    LaunchedEffect(Unit) {
-        if (esEdicion) {
+    LaunchedEffect(usuarioIdReal) {
+        if (esEdicion &&usuarioIdReal!=-1L) {
             viewModel.cargarDatosParaEditar(usuarioId = usuarioIdReal)
         } else {
             viewModel.limpiarCampos()
@@ -72,7 +72,7 @@ fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
         Text(text = "Editar Perfil", fontSize = 32.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(20.dp))
 
-        // 📸 CÍRCULO DE FOTO CORREGIDO (Sin errores de 'androidx')
+        // CÍRCULO DE FOTO
         Box(
             modifier = Modifier.size(120.dp).padding(8.dp),
             contentAlignment = Alignment.BottomEnd
@@ -80,14 +80,14 @@ fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(CircleShape) //Uso directo gracias al import
+                    .clip(CircleShape)
                     .background(Color.LightGray)
                     .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
                     .clickable { galleryLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
                 if (fotoUri != null) {
-                    coil.compose.AsyncImage(
+                    AsyncImage(
                         model = fotoUri,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
@@ -98,7 +98,6 @@ fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
                 }
             }
 
-            // Botón "+" pequeño
             Box(
                 modifier = Modifier.size(32.dp).clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary)
@@ -111,7 +110,7 @@ fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // CAMPOS DE TEXTO (Vinculados al ViewModel)
+        // CAMPOS DE TEXTO vinculados al ViewModel
         PantallaConTextEditable(valor = viewModel.nombre, onTextFieldChange = { viewModel.nombre = it }, etiqueta = "Nombre")
         PantallaConTextEditable(valor = viewModel.apellidos, onTextFieldChange = { viewModel.apellidos = it }, etiqueta = "Apellidos")
         PantallaConTextEditable(valor = viewModel.fechaNacimiento, onTextFieldChange = { viewModel.fechaNacimiento = it }, etiqueta = "Fecha De Nacimiento (AAAA-MM-DD)")
@@ -119,18 +118,31 @@ fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
 
         Spacer(modifier = Modifier.height(40.dp))
 
+        // 🎯 BOTÓN CORREGIDO
         Button(
             onClick = {
                 viewModel.actualizarPerfil(usuarioId = usuarioIdReal) {
+                    // 🎯 SOLUCIÓN: Usamos las propiedades directas del viewModel
                     val intent = Intent(context, FotoUsuario::class.java).apply {
                         putExtra("USUARIO_ID", usuarioIdReal)
+                        putExtra("nombre", viewModel.nombre)
+                        putExtra("apellidos", viewModel.apellidos)
+                        putExtra("ciudad", viewModel.ciudad)
+                        putExtra("fecha", viewModel.fechaNacimiento)
                     }
                     context.startActivity(intent)
+                    if (esEdicion) activity?.finish() // Si era edición, cerramos la ventana al terminar
                 }
+            },
+            enabled = viewModel.botonHabilitado && !viewModel.estaCargando, // No permitir clics dobles mientras carga
+            modifier = Modifier.fillMaxWidth(0.9f),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            if (viewModel.estaCargando) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
+            } else {
+                Text("Guardar Cambios")
             }
-        )
-        {
-            Text("Guardar Cambios")
         }
     }
 }

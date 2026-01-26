@@ -5,23 +5,28 @@ import androidx.lifecycle.ViewModel
 import com.example.pantallas.modelos.Perfil
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
+/**
+ * , el perfil nace vacío. Debemos asegurarnos de que la actualización sea
+ * "atómica" para que la UI no vea el estado vacío ni un segundo.
+ */
 class FotoUsuarioViewModel : ViewModel() {
-    // Inicializamos con un perfil vacío en lugar del de ejemplo
-    // 🎯 Hemos añadido un "" extra al final para la ciudad que faltaba
     private val _perfil = MutableStateFlow(Perfil(0L, "", "", "", ""))
-    val perfil: StateFlow<Perfil> = _perfil
+    val perfil: StateFlow<Perfil> = _perfil.asStateFlow()
 
     private val _fotoUri = MutableStateFlow<Uri?>(null)
-    val fotoUri: StateFlow<Uri?> = _fotoUri
+    val fotoUri: StateFlow<Uri?> = _fotoUri.asStateFlow()
 
-    // Función para actualizar los datos con lo que viene del Intent
+    // 🎯 Sincronización inmediata
     fun setDatosPerfil(nombre: String, apellidos: String, ciudad: String, fecha: String) {
         _perfil.value = Perfil(
+            perfil_id = 0L, // ID temporal para la vista
             nombre = nombre,
             apellidos = apellidos,
             ciudad = ciudad,
-            fechaNacimiento = fecha
+            fechaNacimiento = fecha,
+            fotoPerfil = ""
         )
     }
 

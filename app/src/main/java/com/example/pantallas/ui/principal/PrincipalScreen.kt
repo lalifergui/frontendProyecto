@@ -1,5 +1,6 @@
 package com.example.pantallas.ui.principal
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,7 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.R
-import com.example.pantallas.modelos.Categoria // Asegúrate de importar tu modelo
+import com.example.pantallas.modelos.Categoria
 import com.example.pantallas.ui.biblioteca.BibliotecaContenido
 import com.example.pantallas.ui.perfil.PerfilViewModel
 import com.example.pantallas.util.CardPerfil
@@ -33,7 +34,7 @@ class Principal : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class) // 🎯 Necesario para el desplegable
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrincipalScreen(
     principalViewModel: PrincipalViewModel = viewModel(),
@@ -41,7 +42,14 @@ fun PrincipalScreen(
 ) {
     val context = LocalContext.current
 
-    // ESTADOS PARA EL DESPLEGABLE
+    // ---------------------------------------------------------
+    // 1. RECUPERAR ID DE MEMORIA
+    // ---------------------------------------------------------
+    val usuarioIdLogueado = remember {
+        context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+            .getLong("ID_USUARIO_ACTUAL", -1L)
+    }
+
     var expandido by remember { mutableStateOf(false) }
     var categoriaSeleccionada by remember { mutableStateOf(Categoria.listaCategorias[0]) }
 
@@ -66,11 +74,9 @@ fun PrincipalScreen(
                 modifier = Modifier.padding(vertical = 12.dp)
             )
 
-            // --- DESPLEGABLE DE CATEGORÍA (Añadido aquí) ---
+            // Desplegable de Categorías
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
             ) {
                 ExposedDropdownMenuBox(
                     expanded = expandido,
@@ -82,10 +88,7 @@ fun PrincipalScreen(
                         readOnly = true,
                         label = { Text(text="Filtrar por categoría", fontSize = 12.sp) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandido) },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth()
-                            .height(56.dp),
+                        modifier = Modifier.menuAnchor().fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(12.dp),
                         textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
@@ -101,7 +104,6 @@ fun PrincipalScreen(
                                 onClick = {
                                     categoriaSeleccionada = categoria
                                     expandido = false
-                                    // Aquí podrías llamar a principalViewModel.filtrarPorCategoria(categoria)
                                 }
                             )
                         }
@@ -109,6 +111,7 @@ fun PrincipalScreen(
                 }
             }
 
+            // Card Principal
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -122,35 +125,31 @@ fun PrincipalScreen(
                     BibliotecaContenido(esModoEdicion = false)
                 }
                 Spacer(Modifier.height(16.dp))
+
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     Icon(
-                        painterResource(R.drawable.libro_x),
+                        painterResource(R.drawable.libro_x), // Asegúrate de tener este icono
                         null,
-                        Modifier
-                            .size(30.dp)
-                            .clickable { principalViewModel.dislikeUsuario() },
+                        Modifier.size(30.dp).clickable { principalViewModel.dislikeUsuario() },
                         tint = Color.Unspecified
                     )
                     Icon(
-                        painterResource(R.drawable.libro_tick),
+                        painterResource(R.drawable.libro_tick), // Asegúrate de tener este icono
                         null,
-                        Modifier
-                            .size(30.dp)
-                            .clickable { /* Lógica de Like */ },
+                        Modifier.size(30.dp).clickable { /* Lógica Like */ },
                         tint = Color.Unspecified
                     )
                 }
             }
 
             Spacer(Modifier.height(20.dp))
-            Menu(context)
+
+            // ---------------------------------------------------------
+            // 2. PASAR ID AL MENÚ (Esto arregla la navegación al perfil)
+            // ---------------------------------------------------------
+            Menu(context, usuarioIdLogueado)
+
             Spacer(Modifier.height(20.dp))
         }
     }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewPrincipalScreen() {
-    PrincipalScreen()
 }

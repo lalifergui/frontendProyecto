@@ -27,9 +27,7 @@ class PerfilViewModel : ViewModel() {
         viewModelScope.launch {
             estaCargando = true
             try {
-                //Consultamos al PerfilController de Java
-                val response = RetrofitClient.usuarioApi.getPerfil(usuarioId)
-
+                val response = RetrofitClient.perfilApi.getPerfil(usuarioId) // <-- Cambiado a perfilApi
                 if (response.isSuccessful) {
                     response.body()?.let { datos ->
                         perfil = Perfil(
@@ -42,7 +40,6 @@ class PerfilViewModel : ViewModel() {
                     }
                 }
             } catch (e: Exception) {
-                // Si hay error (ej: servidor apagado), mostramos el ejemplo para que no crashee
                 perfil = Perfil.PerfilEjemplo
             } finally {
                 estaCargando = false

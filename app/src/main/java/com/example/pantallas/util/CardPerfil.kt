@@ -66,28 +66,29 @@ fun CardPerfil(perfil: Perfil) {
         ) {
             // Nombre de usuario y Apellidos (El texto que ocupa más altura)
             Text(
-                text = "\n${perfil.nombre} ${perfil.apellidos}",
+                text = "${perfil.nombre} ${perfil.apellidos}",
                 fontSize = 14.sp, // Reducido de 18.sp a 14.sp para evitar desborde/altura
                 fontWeight = FontWeight.SemiBold,
                 color = TextoCardColor,
                 lineHeight = 16.sp, // Controlamos el interlineado para compactar
             )
 
-            Spacer(modifier = Modifier.height(2.dp)) // REDUCIDO de 4.dp a 2.dp
+            Spacer(modifier = Modifier.height(2.dp))
 
             // Edad
             Text(
+
                 text = "Edad: ${perfil.fechaNacimiento}",
-                fontSize = 12.sp, // Reducido de 16.sp a 12.sp
+                fontSize = 12.sp,
                 color = TextoCardColor
             )
 
-            Spacer(modifier = Modifier.height(2.dp)) // REDUCIDO de 4.dp a 2.dp
+            Spacer(modifier = Modifier.height(2.dp))
 
             // Ciudad
             Text(
                 text = "Ciudad: ${perfil.ciudad}",
-                fontSize = 12.sp, // Reducido de 16.sp a 12.sp
+                fontSize = 12.sp,
                 color = TextoCardColor
             )
         }
