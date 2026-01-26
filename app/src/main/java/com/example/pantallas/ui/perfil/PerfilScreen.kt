@@ -43,21 +43,22 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
     val activity = (context as? Activity)
 
     // ---------------------------------------------------------
-    // LÓGICA DE RECUPERACIÓN DE ID SEGURA
+    // 1. RECUPERACIÓN DE ID SEGURA (SharedPreferences + Intent)
     // ---------------------------------------------------------
     val usuarioIdReal = remember {
-        // 1. Intentamos obtenerlo del Intent (lo que manda el menú)
+        // A. Intentamos leer del Intent (prioridad alta)
         val idIntent = activity?.intent?.getLongExtra("USUARIO_ID", -1L) ?: -1L
 
         if (idIntent != -1L) {
             idIntent
         } else {
-            // 2. Si falla, lo leemos de la Memoria Persistente
+            // B. Si falla, leemos de la Memoria Persistente (Respaldo)
             context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
                 .getLong("ID_USUARIO_ACTUAL", -1L)
         }
     }
 
+    // 2. CARGA DE DATOS DEL PERFIL
     LaunchedEffect(usuarioIdReal) {
         if (usuarioIdReal != -1L) {
             perfilViewModel.cargarPerfilReal(usuarioId = usuarioIdReal)
@@ -73,12 +74,17 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
     ) {
         Spacer(modifier = Modifier.height(35.dp))
 
+        // --- CABECERA: TÍTULO Y EDITAR ---
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "Perfil", fontSize = 32.sp, fontWeight = FontWeight.Bold)
+
+            // Botón Editar Perfil
             Icon(
                 imageVector = Icons.Filled.Edit,
                 contentDescription = "Editar Perfil",
@@ -96,20 +102,26 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
 
         Spacer(modifier = Modifier.height(25.dp))
 
+        // --- TARJETA DE PERFIL ---
         if (perfilViewModel.estaCargando) {
             Box(modifier = Modifier.height(100.dp), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
-            // Asegúrate que tu CardPerfil acepta la URL de la foto si la tienes
-            CardPerfil(perfil = perfilViewModel.perfil)
+            // CardPerfil ahora muestra la foto automáticamente gracias a los cambios anteriores
+            CardPerfil(
+                perfil = perfilViewModel.perfil,
+                foto = perfilViewModel.perfil.fotoPerfil
+            )
         }
 
         Spacer(modifier = Modifier.height(25.dp))
 
-        // Sección Biblioteca
+        // --- BOTÓN IR A BIBLIOTECA (Icono Libro) ---
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.End
         ) {
             Icon(
@@ -119,19 +131,23 @@ fun PerfilAnyadir(perfilViewModel: PerfilViewModel = viewModel()) {
                     .size(36.dp)
                     .clickable {
                         val intent = Intent(context, Biblioteca::class.java)
-                        // También pasamos ID a biblioteca por si acaso
+                        // IMPORTANTE: Pasamos el ID para editar TU biblioteca
                         intent.putExtra("USUARIO_ID", usuarioIdReal)
                         context.startActivity(intent)
                     }
             )
         }
 
+        // --- CONTENIDO DE LA BIBLIOTECA (MODO LECTURA) ---
+        // Aquí 'esModoEdicion = false' oculta los botones "+" y de borrar
         Box(modifier = Modifier.fillMaxWidth()) {
             BibliotecaContenido(esModoEdicion = false)
         }
 
+        Spacer(modifier = Modifier.height(20.dp))
+
         // ---------------------------------------------------------
-        // PASAR EL ID AL MENÚ PARA QUE LA NAVEGACIÓN NO SE ROMPA
+        // MENÚ INFERIOR (Con ID para no romper la navegación)
         // ---------------------------------------------------------
         Menu(context, usuarioIdReal)
     }

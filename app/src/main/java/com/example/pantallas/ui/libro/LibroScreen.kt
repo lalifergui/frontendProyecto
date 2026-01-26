@@ -1,6 +1,8 @@
 package com.example.pantallas.ui.libro
 
 import LibroViewModel
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -48,30 +50,50 @@ fun BookScreen(
 @Composable
 fun PantallaLibros(libroViewModel: LibroViewModel) {
     val context = LocalContext.current
+    val activity = context as? Activity
+
+    // Obtenemos la lista de libros del ViewModel
     val libros by libroViewModel.libros.collectAsState()
 
-    // ESTADOS DE BÚSQUEDA Y DIÁLOGO
-    var estado by remember { mutableStateOf("") }
+    // --- ESTADOS ---
+    var estadoBusqueda by remember { mutableStateOf("") }
+
+    // Estados para el Diálogo de Nuevo Libro
     var mostrarDialogoNuevo by remember { mutableStateOf(false) }
     var nuevoTitulo by remember { mutableStateOf("") }
     var nuevoAutor by remember { mutableStateOf("") }
 
-    // ESTADOS DEL DESPLEGABLE
+    // Estados para el Desplegable de Categoría
     var expandido by remember { mutableStateOf(false) }
     var categoriaSeleccionada by remember { mutableStateOf(Categoria.listaCategorias[0]) }
 
-    // LÓGICA DE FILTRADO (TÍTULO O AUTOR)
-    val librosFiltrados = remember(estado, libros) {
-        if (estado.isBlank()) libros
+    // --- LÓGICA DE FILTRADO ---
+    // Filtra la lista según lo que escriba el usuario
+    val librosFiltrados = remember(estadoBusqueda, libros) {
+        if (estadoBusqueda.isBlank()) libros
         else {
             libros.filter {
-                it.titulo.contains(estado, ignoreCase = true) ||
-                        it.autor.contains(estado, ignoreCase = true)
+                it.titulo.contains(estadoBusqueda, ignoreCase = true) ||
+                        it.autor.contains(estadoBusqueda, ignoreCase = true)
             }
         }
     }
 
-    // --- DIÁLOGO PARA AÑADIR LIBRO NUEVO ---
+    // --- FUNCIÓN CLAVE: DEVOLVER LIBRO A LA BIBLIOTECA ---
+    fun devolverLibroSeleccionado(libro: Libro) {
+        val intent = Intent().apply {
+            // Pasamos los datos del libro pieza por pieza
+            putExtra("LIBRO_ID", libro.id)
+            putExtra("LIBRO_TITULO", libro.titulo)
+            putExtra("LIBRO_AUTOR", libro.autor)
+            putExtra("CATEGORIA_NOMBRE", libro.categoria.nombre)
+        }
+        // Marcamos el resultado como OK y cerramos esta pantalla
+        activity?.setResult(Activity.RESULT_OK, intent)
+        activity?.finish()
+    }
+
+    // --- DIÁLOGO NUEVO LIBRO ---
     if (mostrarDialogoNuevo) {
         AlertDialog(
             onDismissRequest = { mostrarDialogoNuevo = false },
@@ -80,6 +102,7 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
                 Column {
                     Text("Introduce los detalles del libro.")
                     Spacer(modifier = Modifier.height(12.dp))
+
                     OutlinedTextField(
                         value = nuevoTitulo,
                         onValueChange = { nuevoTitulo = it },
@@ -88,6 +111,7 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
                         singleLine = true
                     )
                     Spacer(modifier = Modifier.height(8.dp))
+
                     OutlinedTextField(
                         value = nuevoAutor,
                         onValueChange = { nuevoAutor = it },
@@ -99,7 +123,7 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
 
                     Text("Categoría", style = MaterialTheme.typography.labelMedium)
 
-                    // DESPLEGABLE DE CATEGORÍAS
+                    // Desplegable Categoría
                     Box(modifier = Modifier.fillMaxWidth()) {
                         ExposedDropdownMenuBox(
                             expanded = expandido,
@@ -137,13 +161,23 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
                 Button(
                     onClick = {
                         if (nuevoTitulo.isNotBlank()) {
-                            libroViewModel.agregarLibro(nuevoTitulo, nuevoAutor, "", categoriaSeleccionada)
+                            // 1. Creamos el objeto libro al vuelo
+                            // Usamos ID 0 o System.currentTimeMillis() temporalmente
+                            val libroCreado = Libro(
+                                id = System.currentTimeMillis(),
+                                titulo = nuevoTitulo,
+                                autor = nuevoAutor,
+                                portada = "",
+                                categoria = categoriaSeleccionada
+                            )
+
+                            // 2. Lo devolvemos inmediatamente a la biblioteca
+                            devolverLibroSeleccionado(libroCreado)
+
                             mostrarDialogoNuevo = false
-                            nuevoTitulo = ""
-                            nuevoAutor = ""
                         }
                     }
-                ) { Text("Añadir") }
+                ) { Text("Añadir y Seleccionar") }
             },
             dismissButton = {
                 TextButton(onClick = { mostrarDialogoNuevo = false }) { Text("Cancelar") }
@@ -151,12 +185,12 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
         )
     }
 
-    // --- DISEÑO PRINCIPAL ---
+    // --- UI PRINCIPAL ---
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .systemBarsPadding(),
+            .systemBarsPadding(), // Evita solapar barra estado/navegación
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(20.dp))
@@ -164,10 +198,10 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Barra de búsqueda
+        // Barra de Búsqueda
         OutlinedTextField(
-            value = estado,
-            onValueChange = { estado = it },
+            value = estadoBusqueda,
+            onValueChange = { estadoBusqueda = it },
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Busca el título de tu libro") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
@@ -175,24 +209,24 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
             shape = RoundedCornerShape(12.dp)
         )
 
-        // Lista central (ocupa el espacio sobrante)
+        // Lista de Resultados
         LazyColumn(
             modifier = Modifier
-                .weight(1f)
+                .weight(1f) // Ocupa el espacio disponible
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         ) {
             items(librosFiltrados) { libro ->
                 LibroFiltradoItem(libro) {
-                    // Acción al seleccionar un libro de la lista
-                    println("Seleccionado: ${libro.titulo}")
+                    // AL HACER CLIC EN UN LIBRO EXISTENTE
+                    devolverLibroSeleccionado(libro)
                 }
             }
         }
 
-        // --- SECCIÓN INFERIOR ---
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
+        // Sección Inferior: Crear nuevo
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text = "¿No encuentras tu libro?", fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
@@ -202,20 +236,20 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6750A4))
             ) {
-                Text("Añadir libro")
+                Text("Añadir libro manualmente")
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Botón Guardar (Finaliza la actividad)
+        // Botón Cancelar/Volver
         Button(
-            onClick = { (context as? android.app.Activity)?.finish() },
+            onClick = { activity?.finish() },
             modifier = Modifier.fillMaxWidth().height(50.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
         ) {
-            Text("Guardar", color = Color.White, fontWeight = FontWeight.Bold)
+            Text("Cancelar", color = Color.White, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -223,19 +257,21 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
 @Composable
 fun LibroFiltradoItem(libro: Libro, onSelect: () -> Unit) {
     Surface(
-        modifier = Modifier.fillMaxWidth().clickable { onSelect() },
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onSelect() }, // Hacemos clicable toda la fila
         color = Color.Transparent
     ) {
         Column(modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "${libro.titulo} - ${libro.autor}",
+                        text = libro.titulo,
                         style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = libro.categoria.nombre,
+                        text = "${libro.autor} • ${libro.categoria.nombre}",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray
                     )
