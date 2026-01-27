@@ -11,18 +11,18 @@ import com.example.pantallas.data.model.LibroDTO
 import com.example.pantallas.modelos.Biblioteca
 import com.example.pantallas.modelos.Categoria
 import com.example.pantallas.modelos.Libro
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-// Clase auxiliar para saber qué cambio hay que enviar al servidor
 data class CambioPendiente(
-    val tipoAccion: String, // "ADD" o "DELETE"
-    val seccion: String,    // "Recomendados", "Últimos libros", "Futuras lecturas"
+    val tipoAccion: String,
+    val seccion: String,
     val libroId: Long
 )
 
 class BibliotecaViewModel : ViewModel() {
 
-    // Instancia de tu servicio API
     private val apiService = RetrofitClient.bibliotecaApi
 
     // Estado inicial vacío
@@ -37,10 +37,9 @@ class BibliotecaViewModel : ViewModel() {
     var biblioteca: Biblioteca by mutableStateOf(BibliotecaVacia)
         private set
 
-    // Cola de cambios pendientes
     private val cambiosPendientes = mutableListOf<CambioPendiente>()
 
-    // Estado para bloquear el botón mientras guarda
+    // Variable para controlar la carga
     var guardando by mutableStateOf(false)
 
     val tieneLibros: Boolean
@@ -48,15 +47,17 @@ class BibliotecaViewModel : ViewModel() {
                 biblioteca.librosLeidos.isNotEmpty() ||
                 biblioteca.librosFuturasLecturas.isNotEmpty()
 
-    // --- 1. CARGAR DATOS REALES DEL SERVIDOR ---
+    // --- CARGAR DATOS ---
     fun cargarBibliotecaReal(usuarioId: Long) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) { // 🎯 IMPORTANTE: Hilo secundario
             try {
                 val response = apiService.getBiblioteca(usuarioId)
                 if (response.isSuccessful && response.body() != null) {
-                    val dto = response.body()!!
-                    // Mapeamos el DTO (del servidor) al Modelo (de la UI)
-                    biblioteca = mapearDTOaModelo(dto)
+                    val nuevoModelo = mapearDTOaModelo(response.body()!!)
+                    withContext(Dispatchers.Main) {
+                        biblioteca = BibliotecaVacia // Limpiar para refrescar
+                        biblioteca = nuevoModelo
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -64,39 +65,34 @@ class BibliotecaViewModel : ViewModel() {
         }
     }
 
-    // --- 2. AGREGAR LIBRO (Visual + Cola) ---
+    // --- GESTIÓN VISUAL DE LIBROS ---
     fun agregarLibroAMiBiblioteca(nuevoLibro: Libro, seccion: String) {
         val actual = biblioteca
-
-        // Actualizamos visualmente
         biblioteca = when (seccion) {
             "Recomendados" -> actual.copy(librosRecomendados = actual.librosRecomendados + nuevoLibro)
             "Últimos libros" -> actual.copy(librosLeidos = actual.librosLeidos + nuevoLibro)
             "Futuras lecturas" -> actual.copy(librosFuturasLecturas = actual.librosFuturasLecturas + nuevoLibro)
             else -> actual
         }
-
-        // Añadimos a la cola para guardar luego
+        // Guardamos el ID del libro para enviarlo luego
         cambiosPendientes.add(CambioPendiente("ADD", seccion, nuevoLibro.id))
     }
+    fun agregarLibroConOptimisticUpdate(nuevoLibro: Libro, seccion: String) {
+        agregarLibroAMiBiblioteca(nuevoLibro, seccion) // Actualiza UI inmediatamente
+    }
 
-    // --- 3. ELIMINAR LIBRO (Visual + Cola) ---
     fun eliminarLibro(libro: Libro, seccion: String) {
         val actual = biblioteca
-
-        // Actualizamos visualmente
         biblioteca = when (seccion) {
             "Recomendados" -> actual.copy(librosRecomendados = actual.librosRecomendados - libro)
             "Últimos libros" -> actual.copy(librosLeidos = actual.librosLeidos - libro)
             "Futuras lecturas" -> actual.copy(librosFuturasLecturas = actual.librosFuturasLecturas - libro)
             else -> actual
         }
-
-        // Añadimos a la cola para borrar luego
         cambiosPendientes.add(CambioPendiente("DELETE", seccion, libro.id))
     }
 
-    // --- 4. GUARDAR CAMBIOS EN EL BACKEND ---
+    // --- GUARDAR CAMBIOS ---
     fun guardarCambiosEnServidor(usuarioId: Long, onTerminado: () -> Unit) {
         if (cambiosPendientes.isEmpty()) {
             onTerminado()
@@ -104,38 +100,44 @@ class BibliotecaViewModel : ViewModel() {
         }
 
         guardando = true
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Recorremos la lista de pendientes y llamamos a la API
                 cambiosPendientes.forEach { cambio ->
-                    if (cambio.tipoAccion == "ADD") {
-                        when (cambio.seccion) {
-                            "Recomendados" -> apiService.agregarLibroARecomendados(usuarioId, cambio.libroId)
-                            "Últimos libros" -> apiService.agregarLibroALeidos(usuarioId, cambio.libroId)
-                            "Futuras lecturas" -> apiService.agregarLibroAFuturas(usuarioId, cambio.libroId)
+                    try {
+                        when (cambio.tipoAccion) {
+                            "ADD" -> when (cambio.seccion) {
+                                "Recomendados" -> apiService.agregarLibroARecomendados(usuarioId, cambio.libroId)
+                                "Últimos libros" -> apiService.agregarLibroALeidos(usuarioId, cambio.libroId)
+                                "Futuras lecturas" -> apiService.agregarLibroAFuturas(usuarioId, cambio.libroId)
+                            }
+                            "DELETE" -> when (cambio.seccion) {
+                                "Recomendados" -> apiService.eliminarLibroDeRecomendados(usuarioId, cambio.libroId)
+                                "Últimos libros" -> apiService.eliminarLibroDeLeidos(usuarioId, cambio.libroId)
+                                "Futuras lecturas" -> apiService.eliminarLibroDeFuturas(usuarioId, cambio.libroId)
+                            }
                         }
-                    } else if (cambio.tipoAccion == "DELETE") {
-                        when (cambio.seccion) {
-                            "Recomendados" -> apiService.eliminarLibroDeRecomendados(usuarioId, cambio.libroId)
-                            "Últimos libros" -> apiService.eliminarLibroDeLeidos(usuarioId, cambio.libroId)
-                            "Futuras lecturas" -> apiService.eliminarLibroDeFuturas(usuarioId, cambio.libroId)
-                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        // opcional: revertir cambio local si falla
                     }
                 }
                 cambiosPendientes.clear()
-                onTerminado() // Éxito
-            } catch (e: Exception) {
-                e.printStackTrace()
+
+                // Recarga desde backend para sincronizar con DB
+                cargarBibliotecaReal(usuarioId)
+
+                withContext(Dispatchers.Main) { onTerminado() }
             } finally {
-                guardando = false
+                withContext(Dispatchers.Main) { guardando = false }
             }
         }
     }
 
-    // Función auxiliar para convertir lo que llega del servidor a tu objeto Libro
+
+    // --- MAPEADORES ---
     private fun mapearDTOaModelo(dto: BibliotecaDTO): Biblioteca {
         return Biblioteca(
-            id = 0, // El ID de biblioteca no es crítico en la UI
+            id = 0,
             usuario = null,
             librosRecomendados = dto.recomendados.map { convertirLibro(it) },
             librosLeidos = dto.leidos.map { convertirLibro(it) },
@@ -149,6 +151,7 @@ class BibliotecaViewModel : ViewModel() {
             titulo = dto.titulo,
             autor = dto.autor,
             portada = dto.portada ?: "",
+            // 🎯 Usamos categoriaNombre que viene del backend
             categoria = Categoria(0, dto.categoriaNombre ?: "General")
         )
     }

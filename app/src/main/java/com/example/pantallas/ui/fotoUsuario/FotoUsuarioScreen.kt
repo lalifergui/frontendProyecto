@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.pantallas.modelos.Biblioteca
 import com.example.pantallas.ui.principal.Principal // IMPORTANTE: Ir a Principal, no Biblioteca
 import com.example.pantallas.util.CardPerfil
 
@@ -93,15 +94,21 @@ fun FotoUsuarioScreen(viewModel: FotoUsuarioViewModel, usuarioId: Long) {
 
             Button(
                 onClick = {
-                    // --- CORRECCIÓN CLAVE: GUARDAR ID EN MEMORIA ---
+                    // 1. Guardamos el ID en SharedPreferences para que el resto de la app lo use
                     val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
                     with(sharedPref.edit()) {
                         putLong("ID_USUARIO_ACTUAL", usuarioId)
                         apply()
                     }
 
-                    // Ir a la pantalla Principal
-                    val intent = Intent(context, Principal::class.java)
+                    // 2.CORRECCIÓN: Apuntamos a la Activity de Biblioteca, no al modelo.
+                    // Asegúrate de que el import sea: com.example.pantallas.ui.biblioteca.Biblioteca
+                    val intent = Intent(context, com.example.pantallas.ui.biblioteca.Biblioteca::class.java).apply {
+                        // 3. Pasamos el ID directamente por si la SharedPreferences tarda en persistir
+                        putExtra("USUARIO_ID", usuarioId)
+                    }
+
+                    // Limpiamos el historial para que no pueda volver a la presentación
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     context.startActivity(intent)
                     activity?.finish()

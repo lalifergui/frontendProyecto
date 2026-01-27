@@ -10,26 +10,25 @@ import retrofit2.http.Path
 interface BibliotecaApi {
 
     // --- OBTENER BIBLIOTECA ---
-    @GET("api/bibliotecas/usuario/{id}")
-    suspend fun getBiblioteca(@Path("id") usuarioId: Long): Response<BibliotecaDTO>
+    @GET("/bibliotecas/usuario/{usuarioId}")
+    suspend fun getBiblioteca(@Path("usuarioId") usuarioId: Long): Response<BibliotecaDTO>
 
     // --- AÑADIR LIBROS (POST) ---
-    @POST("api/bibliotecas/usuario/{id}/recomendados/{libroId}")
-    suspend fun agregarLibroARecomendados(@Path("id") uid: Long, @Path("libroId") lid: Long): Response<BibliotecaDTO>
+    @POST("/bibliotecas/usuario/{usuarioId}/recomendados/{libroId}")
+    suspend fun agregarLibroARecomendados(@Path("usuarioId") uid: Long, @Path("libroId") lid: Long): Response<BibliotecaDTO>
 
-    @POST("api/bibliotecas/usuario/{id}/leidos/{libroId}")
-    suspend fun agregarLibroALeidos(@Path("id") uid: Long, @Path("libroId") lid: Long): Response<BibliotecaDTO>
+    @POST("/bibliotecas/usuario/{usuarioId}/leidos/{libroId}")
+    suspend fun agregarLibroALeidos(@Path("usuarioId") uid: Long, @Path("libroId") lid: Long): Response<BibliotecaDTO>
 
-    @POST("api/bibliotecas/usuario/{id}/futuras/{libroId}")
-    suspend fun agregarLibroAFuturas(@Path("id") uid: Long, @Path("libroId") lid: Long): Response<BibliotecaDTO>
+    @POST("/bibliotecas/usuario/{usuarioId}/futuras/{libroId}")
+    suspend fun agregarLibroAFuturas(@Path("usuarioId") uid: Long, @Path("libroId") lid: Long): Response<BibliotecaDTO>
 
-    // --- ELIMINAR LIBROS (DELETE) - ¡FALTABA ESTO! ---
-    @DELETE("api/bibliotecas/usuario/{id}/recomendados/{libroId}")
-    suspend fun eliminarLibroDeRecomendados(@Path("id") uid: Long, @Path("libroId") lid: Long): Response<BibliotecaDTO>
+    @DELETE("/bibliotecas/usuario/{usuarioId}/recomendados/{libroId}")
+    suspend fun eliminarLibroDeRecomendados(@Path("usuarioId") uid: Long, @Path("libroId") lid: Long): Response<BibliotecaDTO>
 
-    @DELETE("api/bibliotecas/usuario/{id}/leidos/{libroId}")
-    suspend fun eliminarLibroDeLeidos(@Path("id") uid: Long, @Path("libroId") lid: Long): Response<BibliotecaDTO>
+    @DELETE("/bibliotecas/usuario/{usuarioId}/leidos/{libroId}")
+    suspend fun eliminarLibroDeLeidos(@Path("usuarioId") uid: Long, @Path("libroId") lid: Long): Response<BibliotecaDTO>
 
-    @DELETE("api/bibliotecas/usuario/{id}/futuras/{libroId}")
-    suspend fun eliminarLibroDeFuturas(@Path("id") uid: Long, @Path("libroId") lid: Long): Response<BibliotecaDTO>
+    @DELETE("/bibliotecas/usuario/{usuarioId}/futuras/{libroId}")
+    suspend fun eliminarLibroDeFuturas(@Path("usuarioId") uid: Long, @Path("libroId") lid: Long): Response<BibliotecaDTO>
 }

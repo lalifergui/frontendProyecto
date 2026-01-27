@@ -279,9 +279,12 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
                     } else {
                         // AQUÍ ES DONDE SE LLAMA AL SERVIDOR
                         viewModel.guardarCambiosEnServidor(usuarioId) {
-                            val intent = Intent(context, Perfil::class.java)
-                            intent.putExtra("USUARIO_ID", usuarioId) // Pasamos el ID de vuelta
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            val intent = Intent(context, Perfil::class.java).apply {
+                                putExtra("USUARIO_ID", usuarioId) // Pasamos el ID de vuelta
+                                //evitamos que se cree una pila infinita de pantallas
+                                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                            }
+
                             context.startActivity(intent)
                             activity?.finish()
                         }

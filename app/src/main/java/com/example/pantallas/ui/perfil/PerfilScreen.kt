@@ -8,27 +8,44 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.ui.biblioteca.Biblioteca
 import com.example.pantallas.ui.biblioteca.BibliotecaContenido
-import com.example.pantallas.ui.biblioteca.BibliotecaViewModel // <--- IMPORTANTE: Importar el ViewModel
+import com.example.pantallas.ui.biblioteca.BibliotecaViewModel
 import com.example.pantallas.ui.editarPerfil.EditarPerfil
 import com.example.pantallas.util.CardPerfil
 import com.example.pantallas.util.Menu
+import kotlinx.coroutines.launch
 
 class Perfil : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,6 +63,8 @@ fun PerfilAnyadir(
 ) {
     val context = LocalContext.current
     val activity = (context as? Activity)
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val state by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
 
     // ---------------------------------------------------------
     // 1. RECUPERACIÓN DE ID SEGURA (SharedPreferences + Intent)
@@ -64,16 +83,19 @@ fun PerfilAnyadir(
     }
 
     // 2. CARGA DE DATOS (PERFIL + BIBLIOTECA)
-    LaunchedEffect(usuarioIdReal) {
-        if (usuarioIdReal != -1L) {
-            // Cargar datos del usuario
-            perfilViewModel.cargarPerfilReal(usuarioId = usuarioIdReal)
+    //En Perfil.kt
+    // Usamos Unit para que solo cargue al "entrar", pero añadimos un refresco manual si hace falta
+    // En Perfil.kt
+    LaunchedEffect(state) {
+        if (state== Lifecycle.State.RESUMED && usuarioIdReal != -1L) {
+            // Ejecutamos las cargas
+            perfilViewModel.cargarPerfilReal(usuarioIdReal)
 
-            // 2. ¡IMPORTANTE! Cargar la biblioteca del servidor
-            bibliotecaViewModel.cargarBibliotecaReal(usuarioId = usuarioIdReal)
+            // El truco: limpiar la biblioteca visual antes de pedir la nueva
+            // Esto evita que Compose piense que "ya tiene los datos"
+            bibliotecaViewModel.cargarBibliotecaReal(usuarioIdReal)
         }
     }
-
     Column(
         modifier = Modifier
             .fillMaxSize()

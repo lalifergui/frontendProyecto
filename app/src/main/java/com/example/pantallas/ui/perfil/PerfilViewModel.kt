@@ -7,7 +7,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pantallas.data.network.RetrofitClient
 import com.example.pantallas.modelos.Perfil
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.Dispatcher
 
 class PerfilViewModel : ViewModel() {
 
@@ -24,25 +27,28 @@ class PerfilViewModel : ViewModel() {
      * Se debe llamar al iniciar la pantalla.
      */
     fun cargarPerfilReal(usuarioId: Long) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             estaCargando = true
             try {
                 val response = RetrofitClient.perfilApi.getPerfil(usuarioId) // <-- Cambiado a perfilApi
                 if (response.isSuccessful) {
                     response.body()?.let { datos ->
-                        perfil = Perfil(
-                            perfil_id = datos.perfilId ?: 0L,
-                            nombre = datos.nombre,
-                            apellidos = datos.apellidos,
-                            fechaNacimiento = datos.fechaNacimiento,
-                            ciudad = datos.ciudad
-                        )
+                        withContext(Dispatchers.Main) {
+                            perfil = Perfil(
+                                perfil_id = datos.perfilId ?: 0L,
+                                nombre = datos.nombre,
+                                apellidos = datos.apellidos,
+                                fechaNacimiento = datos.fechaNacimiento,
+                                ciudad = datos.ciudad,
+                                fotoPerfil = datos.fotoPerfil?:""
+                            )
+                        }
                     }
                 }
             } catch (e: Exception) {
-                perfil = Perfil.PerfilEjemplo
+                withContext(Dispatchers.Main) { perfil = Perfil.PerfilEjemplo}
             } finally {
-                estaCargando = false
+                withContext(Dispatchers.Main) { estaCargando = false }
             }
         }
     }
