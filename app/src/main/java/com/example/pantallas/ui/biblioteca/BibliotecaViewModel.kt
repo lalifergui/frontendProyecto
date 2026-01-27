@@ -93,6 +93,8 @@ class BibliotecaViewModel : ViewModel() {
     }
 
     // --- GUARDAR CAMBIOS ---
+// Archivo: com.example.pantallas.ui.biblioteca.BibliotecaViewModel.kt
+
     fun guardarCambiosEnServidor(usuarioId: Long, onTerminado: () -> Unit) {
         if (cambiosPendientes.isEmpty()) {
             onTerminado()
@@ -102,6 +104,7 @@ class BibliotecaViewModel : ViewModel() {
         guardando = true
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                // 1. Procesamos todos los cambios pendientes en la DB
                 cambiosPendientes.forEach { cambio ->
                     try {
                         when (cambio.tipoAccion) {
@@ -116,17 +119,21 @@ class BibliotecaViewModel : ViewModel() {
                                 "Futuras lecturas" -> apiService.eliminarLibroDeFuturas(usuarioId, cambio.libroId)
                             }
                         }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        // opcional: revertir cambio local si falla
-                    }
+                    } catch (e: Exception) { e.printStackTrace() }
                 }
                 cambiosPendientes.clear()
 
-                // Recarga desde backend para sincronizar con DB
-                cargarBibliotecaReal(usuarioId)
 
-                withContext(Dispatchers.Main) { onTerminado() }
+                val response = apiService.getBiblioteca(usuarioId)
+                if (response.isSuccessful && response.body() != null) {
+                    val nuevoModelo = mapearDTOaModelo(response.body()!!)
+                    withContext(Dispatchers.Main) {
+                        biblioteca = nuevoModelo // Actualizamos el estado observable
+                        onTerminado()
+                    }
+                } else {
+                    withContext(Dispatchers.Main) { onTerminado() }
+                }
             } finally {
                 withContext(Dispatchers.Main) { guardando = false }
             }
