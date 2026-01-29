@@ -5,6 +5,8 @@ import com.example.pantallas.data.model.UsuarioRegisterDTO
 import com.example.pantallas.data.model.LoginRequestDTO
 import com.example.pantallas.data.model.PerfilDTO
 import com.example.pantallas.data.model.BibliotecaDTO
+import com.example.pantallas.data.model.NotificacionesFavoritos
+import com.example.pantallas.data.model.UsuarioSwipeDTO
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -35,4 +37,8 @@ interface UsuarioApi {
     ): Response<Void>
     @GET("usuarios")
     suspend fun getAllUsuarios(): Response<List<UsuarioDTO>>
+    @GET("usuarios/{id}/favoritos")
+    suspend fun getFavoritos(@Path("id") id: Long): Response<List<UsuarioSwipeDTO>>
+    @GET("usuarios/{id}/favoritos/notificaciones")
+    suspend fun getNotificacionesFavoritos(@Path("id") id: Long): Response<List<NotificacionesFavoritos>>
 }

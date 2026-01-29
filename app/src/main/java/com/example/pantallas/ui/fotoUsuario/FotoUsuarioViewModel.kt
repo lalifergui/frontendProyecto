@@ -8,20 +8,25 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * , el perfil nace vacío. Debemos asegurarnos de que la actualización sea
- * "atómica" para que la UI no vea el estado vacío ni un segundo.
+ * ViewModel encargado de la previsualización de la carta de presentación.
+ * El perfil nace con valores por defecto y se actualiza con los datos recibidos del registro.
  */
 class FotoUsuarioViewModel : ViewModel() {
+
+    // Estado del perfil para la CardPerfil
     private val _perfil = MutableStateFlow(Perfil(0L, "", "", "", ""))
     val perfil: StateFlow<Perfil> = _perfil.asStateFlow()
 
+    // Estado de la URI de la foto seleccionada
     private val _fotoUri = MutableStateFlow<Uri?>(null)
     val fotoUri: StateFlow<Uri?> = _fotoUri.asStateFlow()
 
-    // 🎯 Sincronización inmediata
+    /**
+     * Setea los datos iniciales que vienen del Intent de la pantalla de datos personales.
+     */
     fun setDatosPerfil(nombre: String, apellidos: String, ciudad: String, fecha: String) {
         _perfil.value = Perfil(
-            perfil_id = 0L, // ID temporal para la vista
+            perfil_id = 0L,
             nombre = nombre,
             apellidos = apellidos,
             ciudad = ciudad,
@@ -30,6 +35,9 @@ class FotoUsuarioViewModel : ViewModel() {
         )
     }
 
+    /**
+     * Actualiza la URI de la foto para que la previsualización la muestre.
+     */
     fun actualizarFoto(uri: Uri) {
         _fotoUri.value = uri
     }

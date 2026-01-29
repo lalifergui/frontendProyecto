@@ -33,57 +33,48 @@ class Principal : ComponentActivity() {
         setContent { PrincipalScreen() }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrincipalScreen(
     principalViewModel: PrincipalViewModel = viewModel(),
-    // Usamos un ViewModel de biblioteca independiente para los perfiles sugeridos
     bibliotecaSugeridoViewModel: BibliotecaViewModel = viewModel()
 ) {
     val context = LocalContext.current
 
-    // 1. RECUPERAR ID DEL USUARIO LOGUEADO (Laura)
+    // 1. RECUPERAR ID Y ESTADOS
     val usuarioIdLogueado = remember {
         context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
             .getLong("ID_USUARIO_ACTUAL", -1L)
     }
 
-    // 2. DISPARAR CARGA DE EXPLORACIÓN AL INICIAR
+    var expandido by remember { mutableStateOf(false) }
+    var categoriaSeleccionada by remember { mutableStateOf(Categoria.listaCategorias[0]) }
+    val sugerido = principalViewModel.usuarioSugerido
+
+    // 2. DISPARADORES DE CARGA
     LaunchedEffect(usuarioIdLogueado) {
         if (usuarioIdLogueado != -1L) {
             principalViewModel.cargarExploracion(usuarioIdLogueado)
         }
     }
 
-    val sugerido = principalViewModel.usuarioSugerido
-    LaunchedEffect(sugerido) {
-        sugerido?.let {
-            // Le pedimos al ViewModel de biblioteca que traiga los libros del ID sugerido
-            bibliotecaSugeridoViewModel.cargarBibliotecaReal(it.perfil.perfil_id)
-        }
-    }
-    var expandido by remember { mutableStateOf(false) }
-    var categoriaSeleccionada by remember { mutableStateOf(Categoria.listaCategorias[0]) }
-
-    // 3. ACTUALIZAR BIBLIOTECA DEL USUARIO QUE APARECE EN EL SWIPE
     LaunchedEffect(sugerido) {
         sugerido?.let {
             bibliotecaSugeridoViewModel.cargarBibliotecaReal(it.perfil.perfil_id)
         }
     }
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .statusBarsPadding()
-    ) {
+    // 3. ESTRUCTURA DE CAPAS (Box para fijar el menú)
+    Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
+
+        // CAPA 1: CONTENIDO DESPLAZABLE (Scroll)
         Column(
-            Modifier
+            modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .statusBarsPadding()
                 .padding(horizontal = 20.dp)
+                // Margen inferior para que el menú no tape los botones de acción
+                .padding(bottom = 90.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -94,7 +85,7 @@ fun PrincipalScreen(
                 modifier = Modifier.padding(vertical = 12.dp)
             )
 
-            // Desplegable de Categorías
+            // Selector de Categoría
             Box(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
                 ExposedDropdownMenuBox(
                     expanded = expandido,
@@ -108,10 +99,8 @@ fun PrincipalScreen(
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandido) },
                         modifier = Modifier.menuAnchor().fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(12.dp),
-                        textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                     )
-
                     ExposedDropdownMenu(
                         expanded = expandido,
                         onDismissRequest = { expandido = false }
@@ -129,14 +118,10 @@ fun PrincipalScreen(
                 }
             }
 
-            // --- CONTENIDO DINÁMICO ---
+            // CONTENIDO DE LA TARJETA
             if (principalViewModel.isLoading) {
-                // Muestra el círculo de carga mientras se conecta al backend
-                Box(Modifier.height(400.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF2196F3))
-                }
+                CircularProgressIndicator(Modifier.padding(top = 50.dp))
             } else if (sugerido != null) {
-                // TARJETA DEL OTRO USUARIO (Emi, Sandra, Adriel...)
                 Column(
                     Modifier
                         .fillMaxWidth()
@@ -144,21 +129,19 @@ fun PrincipalScreen(
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Mapea los datos reales del perfil sugerido
                     CardPerfil(perfil = sugerido.perfil)
 
                     Spacer(Modifier.height(12.dp))
 
+                    // Lógica de Biblioteca Vacía o con Libros
                     if (bibliotecaSugeridoViewModel.tieneLibros) {
-                        // Si tiene libros en MySQL, los mostramos
                         BibliotecaContenido(
                             viewModel = bibliotecaSugeridoViewModel,
                             esModoEdicion = false
                         )
                     } else {
-                        // Si no tiene nada (como Adriel en algunas tablas), avisamos
                         Box(
-                            modifier = Modifier.fillMaxWidth().padding(20.dp),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -172,48 +155,50 @@ fun PrincipalScreen(
 
                     Spacer(Modifier.height(16.dp))
 
-                    // BOTONES DE ACCIÓN (X y TICK)
+                    // Botones de Swipe (X y Corazón)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                        // Icono X: Llama a descartar (pasa al siguiente ID)
                         Icon(
                             painter = painterResource(id = R.drawable.libro_x),
                             contentDescription = "Descartar",
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clickable { principalViewModel.descartar() },
+                            modifier = Modifier.size(45.dp).clickable { principalViewModel.descartar() },
                             tint = Color.Unspecified
                         )
-                        // Icono Tick: Guarda favorito en la DB y pasa al siguiente
+                        // Dentro de la Row de botones en PrincipalScreen (image_3614f6)
                         Icon(
-                            painter = painterResource(id = R.drawable.libro_tick),
+                            painter = painterResource(id = R.drawable.libro_tick), // Tu corazón verde
                             contentDescription = "Like",
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(45.dp)
                                 .clickable {
-                                    principalViewModel.darLike(
-                                        usuarioIdLogueado,
-                                        sugerido.perfil.perfil_id
-                                    )
+                                    val sugerido = principalViewModel.usuarioSugerido
+                                    if (sugerido != null && usuarioIdLogueado != -1L) {
+                                        // 🎯 Llama a la función que persiste en MySQL
+                                        principalViewModel.darLike(usuarioIdLogueado, sugerido.perfil.perfil_id)
+                                    }
                                 },
                             tint = Color.Unspecified
                         )
                     }
                 }
             } else {
-                // Estado final cuando se agotan los perfiles en la base de datos
-                Box(Modifier.height(400.dp), contentAlignment = Alignment.Center) {
-                    Text(
-                        "No hay más lectores disponibles.\n¡Prueba otra categoría!",
-                        textAlign = TextAlign.Center,
-                        color = Color.Gray,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+                Text(
+                    "No hay más lectores disponibles.",
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 100.dp)
+                )
             }
+        }
 
-            Spacer(Modifier.height(20.dp))
+        // CAPA 2: MENÚ ESTÁTICO (Fijado al fondo del Box)
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(Color.White)
+                .navigationBarsPadding()
+                .padding(bottom = 10.dp)
+        ) {
             Menu(context, usuarioIdLogueado)
-            Spacer(Modifier.height(20.dp))
         }
     }
 }
