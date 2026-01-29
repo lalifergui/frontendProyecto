@@ -56,14 +56,12 @@ fun PantallaFavoritos(
 
 ) {
     val context = LocalContext.current
-    /**
-     *  LaunchedEffect(usuarioIdRecibido) {
-     *         if (usuarioIdRecibido != -1L) {
-     *             viewModel.cargarFavoritos(usuarioIdRecibido)
-     *             viewModel.cargarNotificaciones(usuarioIdRecibido) // Carga las notificaciones aquí
-     *         }
-     *     }
-     */
+    LaunchedEffect(usuarioIdRecibido) {
+        if (usuarioIdRecibido != -1L) {
+            viewModel.cargarFavoritos(usuarioIdRecibido)
+            //viewModel.cargarNotificaciones(usuarioIdRecibido) // Carga las notificaciones aquí
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
