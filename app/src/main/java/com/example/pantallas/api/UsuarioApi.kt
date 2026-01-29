@@ -5,6 +5,7 @@ import com.example.pantallas.data.model.UsuarioRegisterDTO
 import com.example.pantallas.data.model.LoginRequestDTO
 import com.example.pantallas.data.model.PerfilDTO
 import com.example.pantallas.data.model.BibliotecaDTO
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -27,4 +28,11 @@ interface UsuarioApi {
     // 4. Obtener Biblioteca: Coincide con @GetMapping("/{id}/biblioteca") [cite: 37]
     @GET("usuarios/{id}/biblioteca")
     suspend fun getBiblioteca(@Path("id") id: Long) : retrofit2.Response<BibliotecaDTO>
+    @POST("usuarios/{id}/favoritos/{favoritoId}")
+    suspend fun addFavorito(
+        @Path("id") id: Long,
+        @Path("favoritoId") favoritoId: Long
+    ): Response<Void>
+    @GET("usuarios")
+    suspend fun getAllUsuarios(): Response<List<UsuarioDTO>>
 }

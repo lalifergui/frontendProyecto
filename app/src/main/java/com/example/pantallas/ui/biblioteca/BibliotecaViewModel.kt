@@ -48,14 +48,19 @@ class BibliotecaViewModel : ViewModel() {
                 biblioteca.librosFuturasLecturas.isNotEmpty()
 
     // --- CARGAR DATOS ---
+
     fun cargarBibliotecaReal(usuarioId: Long) {
-        viewModelScope.launch(Dispatchers.IO) { // 🎯 IMPORTANTE: Hilo secundario
+        viewModelScope.launch(Dispatchers.IO) {
+            // 🎯 AÑADIR: Resetear estado visual antes de empezar
+            withContext(Dispatchers.Main) {
+                biblioteca = BibliotecaVacia
+            }
+
             try {
                 val response = apiService.getBiblioteca(usuarioId)
                 if (response.isSuccessful && response.body() != null) {
                     val nuevoModelo = mapearDTOaModelo(response.body()!!)
                     withContext(Dispatchers.Main) {
-                        biblioteca = BibliotecaVacia // Limpiar para refrescar
                         biblioteca = nuevoModelo
                     }
                 }
@@ -64,6 +69,7 @@ class BibliotecaViewModel : ViewModel() {
             }
         }
     }
+
 
     // --- GESTIÓN VISUAL DE LIBROS ---
     fun agregarLibroAMiBiblioteca(nuevoLibro: Libro, seccion: String) {
@@ -157,9 +163,10 @@ class BibliotecaViewModel : ViewModel() {
             id = dto.id ?: 0L,
             titulo = dto.titulo,
             autor = dto.autor,
-            portada = dto.portada ?: "",
-            // 🎯 Usamos categoriaNombre que viene del backend
+            // 🎯 AÑADIR: Fallback para portadas vacías
+            portada = if (dto.portada.isNullOrEmpty()) "default_book_cover" else dto.portada,
             categoria = Categoria(0, dto.categoriaNombre ?: "General")
         )
+
     }
 }
