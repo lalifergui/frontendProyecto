@@ -195,10 +195,10 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
                             }
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6750A4))
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
                 ) {
                     if(guardandoLibro) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White)
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary)
                     } else {
                         Text("Añadir y Seleccionar")
                     }
@@ -262,7 +262,7 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
                 onClick = { mostrarDialogoNuevo = true },
                 modifier = Modifier.fillMaxWidth(0.8f),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6750A4))
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary,MaterialTheme.colorScheme.onPrimary)
             ) {
                 Text("Añadir libro manualmente")
             }
