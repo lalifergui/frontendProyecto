@@ -28,25 +28,26 @@ class PerfilViewModel : ViewModel() {
      */
     fun cargarPerfilReal(usuarioId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            estaCargando = true
+            withContext(Dispatchers.Main) {
+                estaCargando = true
+                // Opcional: limpiar datos viejos para evitar "parpadeo" de info antigua
+                perfil = Perfil(0L, "", "", "", "")
+            }
             try {
-                val response = RetrofitClient.perfilApi.getPerfil(usuarioId) // <-- Cambiado a perfilApi
-                if (response.isSuccessful) {
-                    response.body()?.let { datos ->
-                        withContext(Dispatchers.Main) {
-                            perfil = Perfil(
-                                perfil_id = datos.perfilId ?: 0L,
-                                nombre = datos.nombre,
-                                apellidos = datos.apellidos,
-                                fechaNacimiento = datos.fechaNacimiento,
-                                ciudad = datos.ciudad,
-                                fotoPerfil = datos.fotoPerfil?:""
-                            )
-                        }
+                val response = RetrofitClient.perfilApi.getPerfil(usuarioId)
+                if (response.isSuccessful && response.body() != null) {
+                    val datos = response.body()!!
+                    withContext(Dispatchers.Main) {
+                        perfil = Perfil(
+                            perfil_id = datos.perfilId ?: 0L,
+                            nombre = datos.nombre,
+                            apellidos = datos.apellidos,
+                            fechaNacimiento = datos.fechaNacimiento,
+                            ciudad = datos.ciudad,
+                            fotoPerfil = datos.fotoPerfil ?: ""
+                        )
                     }
                 }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) { perfil = Perfil.PerfilEjemplo}
             } finally {
                 withContext(Dispatchers.Main) { estaCargando = false }
             }

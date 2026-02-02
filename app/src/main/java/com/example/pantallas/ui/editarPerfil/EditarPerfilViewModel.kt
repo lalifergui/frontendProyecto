@@ -77,10 +77,13 @@ class EditarPerfilViewModel : ViewModel() {
     // Función para guardar los cambios
 
     fun actualizarPerfil(usuarioId: Long, onSuccess: () -> Unit) {
+        // 1. Validamos datos antes de enviar
+        if (!botonHabilitado) return
+
         val dto = PerfilUpdateDTO(
             nombre = nombre,
             apellidos = apellidos,
-            fechaNacimiento = fechaNacimiento, // Asegúrate que el formato sea YYYY-MM-DD para Java LocalDate
+            fechaNacimiento = fechaNacimiento,
             ciudad = ciudad,
             fotoPerfil = fotoPerfil
         )
@@ -88,14 +91,20 @@ class EditarPerfilViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 estaCargando = true
+                mensajeError = null // Limpiamos errores previos
+
                 val response = RetrofitClient.perfilApi.actualizarPerfil(usuarioId, dto)
+
                 if (response.isSuccessful) {
-                    onSuccess() // Si el servidor responde OK, ejecutamos la navegación
+                    onSuccess() //  Solo si el servidor dice OK, navegamos
                 } else {
-                    mensajeError = "Error del servidor al guardar"
+                    // Si el servidor da error (ej: 400 Bad Request), mostramos por qué
+                    mensajeError = "Servidor: ${response.code()} - No se pudo guardar"
+                    println("DEBUG: Error en respuesta: ${response.errorBody()?.string()}")
                 }
             } catch (e: Exception) {
                 mensajeError = "Error de red: ${e.message}"
+                e.printStackTrace()
             } finally {
                 estaCargando = false
             }

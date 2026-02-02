@@ -111,7 +111,7 @@ fun LoginScreen(
     ) {
         Spacer(modifier = Modifier.height(25.dp))
         Image(
-            painter = painterResource(id = R.drawable.biblio), // Asegúrate de que este recurso existe
+            painter = painterResource(id = R.drawable.logo), // Asegúrate de que este recurso existe
             contentDescription = "Logo biblioswipe",
             modifier = Modifier.size(150.dp)
         )

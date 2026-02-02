@@ -72,7 +72,7 @@ fun RegistroScreen(viewModel: RegistroViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(30.dp))
-        Image(painter = painterResource(id = R.drawable.biblio), contentDescription = "Logo", modifier = Modifier.size(150.dp))
+        Image(painter = painterResource(id = R.drawable.logo), contentDescription = "Logo", modifier = Modifier.size(150.dp))
         Spacer(modifier = Modifier.height(20.dp))
         Text(text = "Crear Usuario", fontSize = 32.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(24.dp))

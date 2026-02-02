@@ -1,39 +1,26 @@
 package com.example.pantallas
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.view.WindowCompat.enableEdgeToEdge
-
+import com.example.pantallas.ui.login.PantallaLogin // Asegúrate de importar tu Login
+import com.example.pantallas.ui.registro.Registrar
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-
+            // Llamamos a la pantalla de Login aquí
+            PantallaLogin(
+                onRegisterClick = {
+                    // Lógica para ir al registro desde el Main
+                    val intento = Intent(this, Registrar::class.java)
+                    startActivity(intento)
+                }
+            )
         }
     }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-
 }

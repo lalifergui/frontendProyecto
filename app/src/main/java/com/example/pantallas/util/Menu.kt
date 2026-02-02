@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Output
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.pantallas.ui.biblioteca.Biblioteca
 import com.example.pantallas.ui.favoritos.Favoritos
+import com.example.pantallas.ui.login.Login
 import com.example.pantallas.ui.perfil.Perfil
 import com.example.pantallas.ui.principal.Principal
 
@@ -98,5 +100,16 @@ fun Menu(context: Context, usuarioId: Long) {
                 context.startActivity(intent)
             }
         )
+        //Botón cerrar sesión
+        NavigationBarItem(
+            icon = { Icon(Icons.Filled.Output, contentDescription = "Cerrar Sesión") },
+            selected = false,
+            onClick = {
+                val intent = Intent(context, Login::class.java)
+                intent.putExtra("USUARIO_ID", usuarioId)
+                context.startActivity(intent)
+            }
+        )
+
     }
 }

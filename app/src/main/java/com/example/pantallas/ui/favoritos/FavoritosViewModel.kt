@@ -20,8 +20,6 @@ class FavoritosViewModel : ViewModel() {
     var listaFavoritos by mutableStateOf<List<UsuariosFavoritos>>(emptyList())
     var isLoading by mutableStateOf(false)
 
-
-
     var listaNotificaciones: List<NotificacionesFavoritos> by mutableStateOf<List<NotificacionesFavoritos>>(emptyList())
     // Dentro de FavoritosViewModel.kt
     fun cargarFavoritos(usuarioId: Long) {
