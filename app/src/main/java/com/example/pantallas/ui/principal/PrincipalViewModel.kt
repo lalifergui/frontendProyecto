@@ -98,16 +98,23 @@ class PrincipalViewModel : ViewModel() {
     fun darLike(miId: Long, favoritoId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                api.addFavorito(miId, favoritoId) //
+                //  1. Petición al servidor
+                val response = RetrofitClient.usuarioApi.addFavorito(miId, favoritoId)
+
                 withContext(Dispatchers.Main) {
-                    cargarSiguientePerfil()
+                    if (response.isSuccessful) {
+                        // 🎯 2. Solo si el servidor guarda, pasamos al siguiente perfil
+                        descartar()
+                        println("DEBUG: Guardado con éxito")
+                    } else {
+                        println("DEBUG: Error del servidor: ${response.code()}")
+                    }
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) { cargarSiguientePerfil() }
+                e.printStackTrace()
             }
         }
     }
-
     fun descartar() {
         cargarSiguientePerfil()
     }
