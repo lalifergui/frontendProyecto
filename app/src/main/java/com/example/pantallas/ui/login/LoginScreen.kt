@@ -34,18 +34,19 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.ui.registro.Registrar
 import com.example.pantallas.ui.principal.Principal
 import com.example.pantallas.R
+import com.example.pantallas.ui.theme.AppTheme
 
 class Login : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            PantallaLogin(
+            AppTheme(dynamicColor = false) { PantallaLogin(
                 onRegisterClick = {
                     val intento = Intent(this, Registrar::class.java)
                     startActivity(intento)
                 }
-            )
+            ) }
         }
     }
 }
@@ -163,7 +164,7 @@ fun LoginScreen(
             enabled = botonHabilitado,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
         ) {
             Text("Login", color = Color.White)
         }

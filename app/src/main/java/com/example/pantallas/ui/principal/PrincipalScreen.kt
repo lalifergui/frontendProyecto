@@ -23,6 +23,7 @@ import com.example.pantallas.R
 import com.example.pantallas.modelos.Categoria
 import com.example.pantallas.ui.biblioteca.BibliotecaContenido
 import com.example.pantallas.ui.biblioteca.BibliotecaViewModel
+import com.example.pantallas.ui.theme.AppTheme
 import com.example.pantallas.util.CardPerfil
 import com.example.pantallas.util.Menu
 
@@ -30,7 +31,18 @@ class Principal : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent { PrincipalScreen() }
+        setContent {
+            // 1. Aplicas tu tema personalizado para unificar la estética
+            AppTheme(dynamicColor = false) {
+                // 2. Surface aplica el color de fondo y contenido base del tema
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    PrincipalScreen()
+                }
+            }
+        }
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,7 +107,7 @@ fun PrincipalScreen(
                         value = categoriaSeleccionada.nombre,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(text="Filtrar por categoría", fontSize = 12.sp) },
+                        label = { Text(text="Filtrar por categoría", fontSize = 10.sp) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandido) },
                         modifier = Modifier.menuAnchor().fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(12.dp),
@@ -172,7 +184,7 @@ fun PrincipalScreen(
                                 .clickable {
                                     val sugerido = principalViewModel.usuarioSugerido
                                     if (sugerido != null && usuarioIdLogueado != -1L) {
-                                        // 🎯 Llama a la función que persiste en MySQL
+                                        //  Llama a la función que persiste en MySQL
                                         principalViewModel.darLike(usuarioIdLogueado, sugerido.perfil.perfil_id)
                                     }
                                 },

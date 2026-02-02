@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,8 +23,8 @@ import com.example.pantallas.modelos.Perfil
 @Composable
 fun CardPerfil(perfil: Perfil, foto: String? = null) {
 
-    val FondoCardColor = Color(0xFF2E4053)
-    val TextoCardColor = Color.White
+    val FondoCardColor = MaterialTheme.colorScheme.primary
+    val TextoCardColor = MaterialTheme.colorScheme.onPrimary
 
     Row(
         modifier = Modifier

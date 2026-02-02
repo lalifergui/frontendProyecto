@@ -33,17 +33,26 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.pantallas.ui.fotoUsuario.FotoUsuario
 import com.example.pantallas.ui.perfil.Perfil // 🎯 Importamos la pantalla de Perfil
+import com.example.pantallas.ui.theme.AppTheme
 
 class EditarPerfil : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            EditarPerfilVentana()
+
+            AppTheme(dynamicColor = false) {
+
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    EditarPerfilVentana()
+                }
+            }
         }
     }
 }
-
 @Composable
 fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
     val context = LocalContext.current

@@ -25,6 +25,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.pantallas.modelos.Biblioteca
 import com.example.pantallas.ui.principal.Principal // IMPORTANTE: Ir a Principal, no Biblioteca
+import com.example.pantallas.ui.theme.AppTheme
 import com.example.pantallas.util.CardPerfil
 
 class FotoUsuario : ComponentActivity() {
@@ -37,12 +38,21 @@ class FotoUsuario : ComponentActivity() {
         val fecha = intent.getStringExtra("fecha") ?: ""
 
         setContent {
-            val viewModel: FotoUsuarioViewModel = viewModel()
-            remember {
-                viewModel.setDatosPerfil(nombre, apellidos, ciudad, fecha)
-                true
+            // 1. Aplica el tema de tu proyecto
+            AppTheme(dynamicColor = false) {
+                // 2. Surface para el fondo automático del tema
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    val viewModel: FotoUsuarioViewModel = viewModel()
+                    remember {
+                        viewModel.setDatosPerfil(nombre, apellidos, ciudad, fecha)
+                        true
+                    }
+                    FotoUsuarioScreen(viewModel, usuarioId)
+                }
             }
-            FotoUsuarioScreen(viewModel, usuarioId)
         }
     }
 }

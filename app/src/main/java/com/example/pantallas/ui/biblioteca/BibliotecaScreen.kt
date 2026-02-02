@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,11 +34,26 @@ import com.example.pantallas.modelos.Categoria
 import com.example.pantallas.modelos.Libro
 import com.example.pantallas.ui.libro.LibroScreen
 import com.example.pantallas.ui.perfil.Perfil // Asegúrate de importar tu Perfil correctamente
+import com.example.pantallas.ui.theme.AppTheme
 
 class Biblioteca : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { BibliotecaScreen() }
+        // Habilita que el diseño use toda la pantalla (opcional pero recomendado)
+        enableEdgeToEdge()
+
+        setContent {
+            // 1. Aplicas tu tema personalizado
+            AppTheme(dynamicColor = false) {
+                // 2. Surface asegura que el fondo sea el de tu tema (ej. color hueso/beige)
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    BibliotecaScreen()
+                }
+            }
+        }
     }
 }
 
@@ -293,7 +309,7 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
                 modifier = Modifier.weight(1f),
                 enabled = !viewModel.guardando, // Deshabilita si está guardando
                 shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
             ) {
                 if (viewModel.guardando) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))

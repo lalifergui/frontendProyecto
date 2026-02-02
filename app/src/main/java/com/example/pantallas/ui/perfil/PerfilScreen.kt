@@ -31,6 +31,7 @@ import com.example.pantallas.ui.biblioteca.Biblioteca
 import com.example.pantallas.ui.biblioteca.BibliotecaContenido
 import com.example.pantallas.ui.biblioteca.BibliotecaViewModel
 import com.example.pantallas.ui.editarPerfil.EditarPerfil
+import com.example.pantallas.ui.theme.AppTheme
 import com.example.pantallas.util.CardPerfil
 import com.example.pantallas.util.Menu
 
@@ -39,20 +40,27 @@ class Perfil : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 1. Identificamos al usuario: ¿soy yo o es otro?
         val idAVisualizar = intent.getLongExtra("USUARIO_ID", -1L)
         val sharedPref = getSharedPreferences("AppPrefs", MODE_PRIVATE)
         val miIdReal = sharedPref.getLong("ID_USUARIO_ACTUAL", -1L)
 
-        // Lógica de autoría: si el ID es el mío o no viene ninguno (-1), es mi perfil
         val esMiPropioPerfil = (idAVisualizar == miIdReal || idAVisualizar == -1L)
         val idFinal = if (idAVisualizar == -1L) miIdReal else idAVisualizar
 
         setContent {
-            PerfilAnyadir(
-                usuarioId = idFinal,
-                modoEdicionHabilitado = esMiPropioPerfil
-            )
+            // 1. Aplicas tu tema personalizado
+            AppTheme(dynamicColor = false) {
+                // 2. Surface para que el fondo de la pantalla use los colores de tu tema
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    PerfilAnyadir(
+                        usuarioId = idFinal,
+                        modoEdicionHabilitado = esMiPropioPerfil
+                    )
+                }
+            }
         }
     }
 }

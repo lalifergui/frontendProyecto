@@ -29,18 +29,27 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.R
 import com.example.pantallas.ui.editarPerfil.EditarPerfil
+import com.example.pantallas.ui.theme.AppTheme
 
 class Registrar : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val viewModel: RegistroViewModel = viewModel()
-            RegistroScreen(viewModel)
+
+            AppTheme(dynamicColor = false) {
+
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    val viewModel: RegistroViewModel = viewModel()
+                    RegistroScreen(viewModel)
+                }
+            }
         }
     }
 }
-
 @Composable
 fun RegistroScreen(viewModel: RegistroViewModel) {
     val usuario by viewModel.usuario.collectAsState()

@@ -26,13 +26,23 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.modelos.Categoria
 import com.example.pantallas.modelos.Libro
+import com.example.pantallas.ui.theme.AppTheme
 
 class LibroScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            BookScreen()
+            // 1. Aplicas tu tema personalizado para que use tus colores y fuentes
+            AppTheme(dynamicColor = false) {
+                // 2. Surface asegura que el fondo sea el de tu tema y no blanco puro
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    BookScreen()
+                }
+            }
         }
     }
 }

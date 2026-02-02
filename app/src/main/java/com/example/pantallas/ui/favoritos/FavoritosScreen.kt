@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,6 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.modelos.NotificacionesFavoritos
 import com.example.pantallas.modelos.UsuariosFavoritos
 import com.example.pantallas.ui.perfil.Perfil
+import com.example.pantallas.ui.theme.AppTheme
 import com.example.pantallas.util.CardPerfil
 import com.example.pantallas.util.Menu
 
@@ -43,12 +46,21 @@ class Favoritos : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Recuperamos el ID del usuario logueado enviado desde la pantalla anterior
+        // Recuperamos el ID del usuario logueado
         val usuarioId = intent.getLongExtra("USUARIO_ID", -1L)
 
         enableEdgeToEdge()
         setContent {
-            PantallaFavoritos(usuarioIdRecibido = usuarioId)
+            // 1. Aplicas tu tema personalizado (asegúrate de que el nombre coincide con Theme.kt)
+            AppTheme(dynamicColor = false) {
+                // 2. Surface asegura que el fondo sea el de tu tema (ej. el color que elegiste en el generador)
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    PantallaFavoritos(usuarioIdRecibido = usuarioId)
+                }
+            }
         }
     }
 }
