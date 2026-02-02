@@ -167,15 +167,35 @@ fun PantallaFavoritos(
                 "usuarios" -> {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(viewModel.listaFavoritos) { usuario ->
-                            // Pasamos el ID del favorito y el ID del usuario logueado
                             ItemUsuario(usuarioFavorito = usuario, miId = usuarioIdRecibido)
                         }
                     }
                 }
                 "notificaciones" -> {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(viewModel.listaNotificaciones) { nota ->
-                            ItemNotificacion(nota)
+                    // 🎯 AÑADIMOS COLUMNA PARA EL TEXTO PREMIUM
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        LazyColumn(modifier = Modifier.weight(1f)) {
+                            items(viewModel.listaNotificaciones) { nota ->
+                                ItemNotificacion(nota)
+                            }
+                        }
+
+                        // MENSAJE PLAN PREMIUM
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFFFFF9C4)) // Un fondo amarillo suave de advertencia
+                                .padding(12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Si quieres ver las notificaciones de tus usuarios favoritos debes acceder al plan premium",
+                                color = Color.DarkGray,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                lineHeight = 16.sp
+                            )
                         }
                     }
                 }

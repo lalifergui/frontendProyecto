@@ -20,7 +20,7 @@ class FavoritosViewModel : ViewModel() {
     var listaFavoritos by mutableStateOf<List<UsuariosFavoritos>>(emptyList())
     var isLoading by mutableStateOf(false)
 
-    var listaNotificaciones: List<NotificacionesFavoritos> by mutableStateOf<List<NotificacionesFavoritos>>(emptyList())
+    var listaNotificaciones by mutableStateOf<List<NotificacionesFavoritos>>(emptyList())
     // Dentro de FavoritosViewModel.kt
     fun cargarFavoritos(usuarioId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -66,14 +66,13 @@ class FavoritosViewModel : ViewModel() {
     }
     // Dentro de FavoritosViewModel.kt
     /**
-     *  fun cargarNotificaciones(usuarioId: Long) {
+     *     fun cargarNotificaciones(usuarioId: Long) {
      *         viewModelScope.launch(Dispatchers.IO) {
      *             try {
-     *                 // Ahora 'getNotificacionesFavoritos' ya no estará en rojo
      *                 val response = api.getNotificacionesFavoritos(usuarioId)
      *                 if (response.isSuccessful && response.body() != null) {
      *                     withContext(Dispatchers.Main) {
-     *                         // Actualizamos la lista que usa la LazyColumn
+     *                         // 🎯 Ahora esta línea funcionará sin errores rojos
      *                         listaNotificaciones = response.body()!!
      *                     }
      *                 }
