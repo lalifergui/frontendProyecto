@@ -23,20 +23,30 @@ class RegistroViewModel : ViewModel() {
     private val _errorPassword = MutableStateFlow(false)
     val errorPassword: StateFlow<Boolean> = _errorPassword.asStateFlow()
 
-    //  NUEVO: Estado para el mensaje de error del servidor (Usuario ya existe, etc.)
+    // Estado para validar textos con tildes (Nombre/Apellidos)
+    private val _errorNombre = MutableStateFlow(false)
+    val errorNombre: StateFlow<Boolean> = _errorNombre.asStateFlow()
+
     private val _mensajeErrorServidor = MutableStateFlow<String?>(null)
     val mensajeErrorServidor: StateFlow<String?> = _mensajeErrorServidor.asStateFlow()
 
     val botonHabilitado: StateFlow<Boolean> = combine(
-        _usuario, _errorEmail, _errorPassword
-    ) { user, errE, errP ->
-        user.email.isNotBlank() && user.password.isNotBlank() && !errE && !errP
+        _usuario, _errorEmail, _errorPassword, _errorNombre
+    ) { user, errE, errP, errN ->
+        // El botón se habilita si los campos no están vacíos y no hay errores
+        user.email.isNotBlank() && user.password.isNotBlank() && !errE && !errP && !errN
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    //  Corregido: Quitamos 'private' para que Registrar.kt pueda llamarlo
+
+    fun onNombreChanged(nuevoNombre: String) {
+        // Como en este ViewModel el DTO solo tiene email/pass, aquí solo validamos el formato
+        val regexNombre = "^[A-ZÁÉÍÓÚÑa-záéíóúñü\\s]*$".toRegex()
+        _errorNombre.value = nuevoNombre.isNotEmpty() && !regexNombre.matches(nuevoNombre)
+    }
+
     fun actualizarUsuario(nuevoUsuario: UsuarioRegisterDTO) {
         _usuario.value = nuevoUsuario
-        _mensajeErrorServidor.value = null // Limpiar error al escribir
+        _mensajeErrorServidor.value = null
         validarEmail(nuevoUsuario.email)
         validarPassword(nuevoUsuario.password)
     }
@@ -47,7 +57,7 @@ class RegistroViewModel : ViewModel() {
     }
 
     private fun validarPassword(input: String) {
-        // Reglas: 8 caracteres, Mayúscula, Minúscula, Número y '*'
+        // 8 caracteres, Mayúscula, Minúscula, Número y '*'
         val regexPassword = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[*])(?=\\S+$).{8,}$".toRegex()
         _errorPassword.value = input.isNotEmpty() && !regexPassword.matches(input)
     }
@@ -62,7 +72,6 @@ class RegistroViewModel : ViewModel() {
                 if (response.isSuccessful && response.body() != null) {
                     _usuarioIdGenerado.value = response.body()?.id
                 } else {
-                    //  Manejo de usuario duplicado (Error 400 o 409)
                     if (response.code() == 400 || response.code() == 409) {
                         _mensajeErrorServidor.value = "Este correo ya está registrado"
                     } else {

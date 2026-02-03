@@ -46,13 +46,14 @@ class Registrar : ComponentActivity() {
         }
     }
 }
-
 @Composable
 fun RegistroScreen(viewModel: RegistroViewModel) {
     val usuario by viewModel.usuario.collectAsState()
     val errorEmail by viewModel.errorEmail.collectAsState()
     val errorPassword by viewModel.errorPassword.collectAsState()
-    val mensajeErrorServidor by viewModel.mensajeErrorServidor.collectAsState() // 🎯 Escuchamos error de duplicado
+    //  Añadimos la observación por si validas nombres con tildes aquí
+    val errorNombre by viewModel.errorNombre.collectAsState()
+    val mensajeErrorServidor by viewModel.mensajeErrorServidor.collectAsState()
     val botonHabilitado by viewModel.botonHabilitado.collectAsState()
     val usuarioIdGenerado by viewModel.usuarioIdGenerado.collectAsState()
     val estaCargando by viewModel.estaCargando.collectAsState()
@@ -86,6 +87,7 @@ fun RegistroScreen(viewModel: RegistroViewModel) {
             value = usuario.email,
             onValueChange = { viewModel.actualizarUsuario(usuario.copy(email = it)) },
             label = "Email",
+            isError = errorEmail, //  Añadido para que se ponga rojo
             leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) }
         )
         if (errorEmail) {
@@ -108,16 +110,18 @@ fun RegistroScreen(viewModel: RegistroViewModel) {
             modifier = Modifier.fillMaxWidth(),
             isError = errorPassword,
             leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-            singleLine = true
+            singleLine = true,
+            supportingText = {
+                if (errorPassword) {
+                    //  Mensaje actualizado a la nueva seguridad del ViewModel
+                    Text("Mínimo 8 caracteres, Mayús, Núm y '*'", color = MaterialTheme.colorScheme.error)
+                }
+            }
         )
-        if (errorPassword) {
-            // Actualizado mensaje de requisitos
-            Text("Mínimo 8 caracteres, Mayús, Núm y '*'", color = MaterialTheme.colorScheme.error, fontSize = 11.sp, modifier = Modifier.align(Alignment.Start).padding(start = 8.dp))
-        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // MENSAJE DE ERROR DEL SERVIDOR (Usuario ya existe)
+        //  MENSAJE DE ERROR DEL SERVIDOR (Usuario ya existe)
         if (mensajeErrorServidor != null) {
             Text(
                 text = mensajeErrorServidor!!,
@@ -129,6 +133,7 @@ fun RegistroScreen(viewModel: RegistroViewModel) {
 
         Button(
             onClick = { viewModel.registrar() },
+            // 🎯 El botón ahora también depende de !errorNombre (tildes)
             enabled = botonHabilitado && !estaCargando,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp)
@@ -143,6 +148,21 @@ fun RegistroScreen(viewModel: RegistroViewModel) {
 }
 
 @Composable
-fun MiTextField(value: String, onValueChange: (String) -> Unit, label: String, leadingIcon: (@Composable (() -> Unit))? = null) {
-    OutlinedTextField(value = value, onValueChange = onValueChange, label = { Text(label) }, leadingIcon = leadingIcon, modifier = Modifier.fillMaxWidth(), singleLine = true)
+fun MiTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    isError: Boolean = false, //  Añadido soporte para error
+    leadingIcon: (@Composable (() -> Unit))? = null
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        isError = isError,
+        leadingIcon = leadingIcon,
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        shape = RoundedCornerShape(12.dp)
+    )
 }

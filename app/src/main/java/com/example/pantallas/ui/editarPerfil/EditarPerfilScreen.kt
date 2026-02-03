@@ -52,11 +52,13 @@ class EditarPerfil : ComponentActivity() {
             }
         }
     }
-}
-@Composable
+}@Composable
 fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
     val context = LocalContext.current
     val activity = (context as? Activity)
+
+    //  Observamos el error de fecha desde el ViewModel
+    val errorFecha by viewModel.errorFecha.collectAsState()
 
     val sharedPref = remember { context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE) }
     val miIdSesion = sharedPref.getLong("ID_USUARIO_ACTUAL", -1L)
@@ -66,17 +68,14 @@ fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
         if (idFromIntent != -1L) idFromIntent else miIdSesion
     }
 
-    // Esta variable detecta si venimos de "Mi Perfil" (true) o del Registro (false)
     val esEdicion = remember { activity?.intent?.getBooleanExtra("Edicion", false) ?: false }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
     ) { uri ->
-        uri?.let {
-            viewModel.fotoPerfil = it.toString()
-        }
+        uri?.let { viewModel.fotoPerfil = it.toString() }
     }
-
+    val errorNombre by viewModel.errorNombre.collectAsState()
     LaunchedEffect(usuarioIdReal) {
         if (usuarioIdReal != -1L) {
             viewModel.cargarDatosParaEditar(usuarioId = usuarioIdReal)
@@ -98,36 +97,23 @@ fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
         Text(text = "Editar Perfil", fontSize = 32.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(20.dp))
 
-        // CÍRCULO DE FOTO
-        Box(
-            modifier = Modifier.size(120.dp).padding(8.dp),
-            contentAlignment = Alignment.BottomEnd
-        ) {
+        // CÍRCULO DE FOTO (Mantiene tu lógica actual)
+        Box(modifier = Modifier.size(120.dp).padding(8.dp), contentAlignment = Alignment.BottomEnd) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
-                    .background(Color.LightGray)
+                modifier = Modifier.fillMaxSize().clip(CircleShape).background(Color.LightGray)
                     .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
                     .clickable { galleryLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
                 if (viewModel.fotoPerfil.isNotEmpty()) {
-                    AsyncImage(
-                        model = viewModel.fotoPerfil,
-                        contentDescription = "Foto de perfil",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
+                    AsyncImage(model = viewModel.fotoPerfil, contentDescription = null,
+                        modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                 } else {
                     Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(60.dp), tint = Color.Gray)
                 }
             }
-            Box(
-                modifier = Modifier.size(32.dp).clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
-                    .clickable { galleryLauncher.launch("image/*") },
-                contentAlignment = Alignment.Center
+            Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary)
+                .clickable { galleryLauncher.launch("image/*") }, contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
             }
@@ -135,32 +121,41 @@ fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        PantallaConTextEditable(valor = viewModel.nombre, onTextFieldChange = { viewModel.nombre = it }, etiqueta = "Nombre")
+        // CAMPOS DE TEXTO
+        PantallaConTextEditable(
+            valor = viewModel.nombre,
+            onTextFieldChange = { viewModel.onNombreChanged(it) }, //  Llamamos a la validación
+            etiqueta = "Nombre",
+            isError = errorNombre,
+            errorMessage = if (errorNombre) "El nombre solo puede contener letras" else null
+        )
         PantallaConTextEditable(valor = viewModel.apellidos, onTextFieldChange = { viewModel.apellidos = it }, etiqueta = "Apellidos")
+
+        //  CAMPO DE FECHA CON VALIDACIÓN VISUAL
         PantallaConTextEditable(
             valor = viewModel.fechaNacimiento,
-            onTextFieldChange = { viewModel.fechaNacimiento = it },
-            etiqueta = "Fecha De Nacimiento (AAAA-MM-DD)"
+            onTextFieldChange = { viewModel.onFechaNacimientoChanged(it) }, // Llama a la validación
+            etiqueta = "Fecha De Nacimiento (AAAA-MM-DD)",
+            isError = errorFecha, // Activa el color rojo
+            errorMessage = if (errorFecha) "Formato incorrecto de fecha de nacimiento" else null
         )
+
         PantallaConTextEditable(valor = viewModel.ciudad, onTextFieldChange = { viewModel.ciudad = it }, etiqueta = "Ciudad")
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // BOTÓN GUARDAR CON LÓGICA DE NAVEGACIÓN CORREGIDA
+        // BOTÓN GUARDAR
         Button(
             onClick = {
                 viewModel.actualizarPerfil(usuarioId = usuarioIdReal) {
                     if (esEdicion) {
-                        // SI ES EDICIÓN: Vamos directo a la carta de presentación (Perfil)
                         val intent = Intent(context, Perfil::class.java).apply {
                             putExtra("USUARIO_ID", usuarioIdReal)
-                            // Evitamos que el usuario vuelva a este formulario al dar "atrás"
                             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                         }
                         context.startActivity(intent)
                         activity?.finish()
                     } else {
-                        // SI ES REGISTRO: Seguimos el flujo normal (Foto -> Biblioteca)
                         val intent = Intent(context, FotoUsuario::class.java).apply {
                             putExtra("USUARIO_ID", usuarioIdReal)
                             putExtra("nombre", viewModel.nombre)
@@ -173,6 +168,7 @@ fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
                     }
                 }
             },
+            //  El botón se deshabilita automáticamente si hay error de fecha
             enabled = viewModel.botonHabilitado && !viewModel.estaCargando,
             modifier = Modifier.fillMaxWidth(0.9f),
             shape = RoundedCornerShape(8.dp)
@@ -187,11 +183,23 @@ fun EditarPerfilVentana(viewModel: EditarPerfilViewModel = viewModel()) {
 }
 
 @Composable
-fun PantallaConTextEditable(valor: String, onTextFieldChange: (String) -> Unit, etiqueta: String) {
+fun PantallaConTextEditable(
+    valor: String,
+    onTextFieldChange: (String) -> Unit,
+    etiqueta: String,
+    isError: Boolean = false, //  Parámetro para manejar el estado de error
+    errorMessage: String? = null //  Mensaje opcional
+) {
     OutlinedTextField(
         value = valor,
         onValueChange = onTextFieldChange,
         label = { Text(etiqueta) },
+        isError = isError, // Controla el color rojo del borde
+        supportingText = {
+            if (isError && errorMessage != null) {
+                Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+            }
+        },
         modifier = Modifier.fillMaxWidth(0.9f),
         singleLine = true,
         shape = RoundedCornerShape(12.dp)

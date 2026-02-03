@@ -1,6 +1,7 @@
 package com.example.pantallas.ui.login
 
-import android.content.Context // Importante para SharedPreferences
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -14,7 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Password
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -41,12 +42,19 @@ class Login : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            AppTheme(dynamicColor = false) { PantallaLogin(
-                onRegisterClick = {
-                    val intento = Intent(this, Registrar::class.java)
-                    startActivity(intento)
+            AppTheme(dynamicColor = false) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    PantallaLogin(
+                        onRegisterClick = {
+                            val intento = Intent(this, Registrar::class.java)
+                            startActivity(intento)
+                        }
+                    )
                 }
-            ) }
+            }
         }
     }
 }
@@ -58,29 +66,30 @@ fun PantallaLogin(
 ) {
     val context = LocalContext.current
     val loginResult by viewModel.loginResult.collectAsState()
+    // 🎯 Capturamos el error de "Email o contraseña incorrectos"
+    val errorLogin by viewModel.errorLogin.collectAsState()
 
-    // ---------------------------------------------------------------
-    // LÓGICA DE ÉXITO Y GUARDADO DE SESIÓN
-    // ---------------------------------------------------------------
+    // Manejo de éxito en el login
     LaunchedEffect(loginResult) {
-        if (loginResult != null) {
+        loginResult?.let { usuario ->
             val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
             with(sharedPref.edit()) {
-                //  USA EL CAMPO 'id' QUE ES EL QUE VIENE EN TU UsuarioDTO
-                putLong("ID_USUARIO_ACTUAL", loginResult!!.id)
+                // Guardamos el ID real del usuario
+                putLong("ID_USUARIO_ACTUAL", usuario.id)
                 apply()
             }
 
-            // Navegación a la principal
             val intent = Intent(context, Principal::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             context.startActivity(intent)
+            (context as? Activity)?.finish()
         }
     }
 
     LoginScreen(
         viewModel = viewModel,
-        onRegisterClick = onRegisterClick
+        onRegisterClick = onRegisterClick,
+        errorMessageFromServer = errorLogin // Pasamos el error a la UI
     )
 }
 
@@ -89,7 +98,8 @@ fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
     onForgotPasswordClick: () -> Unit = {},
     onRegisterClick: () -> Unit = {},
-    onGoogleClick: () -> Unit = {}
+    onGoogleClick: () -> Unit = {},
+    errorMessageFromServer: String? = null // 🎯 Nuevo parámetro para mostrar el error 401/404
 ) {
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
@@ -104,12 +114,12 @@ fun LoginScreen(
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
-            .systemBarsPadding(), // Mejor usar systemBarsPadding para evitar solapamientos
+            .systemBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(25.dp))
         Image(
-            painter = painterResource(id = R.drawable.logo), // Asegúrate de que este recurso existe
+            painter = painterResource(id = R.drawable.logo),
             contentDescription = "Logo biblioswipe",
             modifier = Modifier.size(150.dp)
         )
@@ -119,6 +129,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(40.dp))
 
+        // Campo Email
         MiTextField(
             value = email,
             onValueChange = { viewModel.onEmailChanged(it) },
@@ -130,38 +141,54 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Campo Contraseña
         OutlinedTextField(
             value = password,
             onValueChange = { viewModel.onPasswordChanged(it) },
             label = { Text("Contraseña") },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                Icon(
-                    imageVector = image,
-                    contentDescription = null,
-                    modifier = Modifier.clickable { passwordVisible = !passwordVisible }
-                )
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                        contentDescription = null
+                    )
+                }
             },
             modifier = Modifier.fillMaxWidth(),
             isError = errorPassword,
-            leadingIcon = { Icon(Icons.Default.Password, contentDescription = "Icono Contraseña") },
+            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Icono Contraseña") },
             singleLine = true,
             supportingText = {
                 if (errorPassword) {
-                    Text(text = "Mínimo 4 caracteres.", color = MaterialTheme.colorScheme.error)
+                    // 🎯 Mensaje actualizado a la nueva seguridad
+                    Text(text = "8+ caracteres, Mayús y '*'.", color = MaterialTheme.colorScheme.error)
                 }
             }
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // 🎯 MOSTRAR ERROR DE CREDENCIALES (Si el email/pass no existen en la BD)
+        if (errorMessageFromServer != null) {
+            Text(
+                text = errorMessageFromServer,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+        }
 
         Button(
             onClick = { viewModel.login() },
             enabled = botonHabilitado,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
         ) {
             Text("Login", color = Color.White)
         }
@@ -204,7 +231,6 @@ fun LoginScreen(
             shape = RoundedCornerShape(8.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Asegúrate de tener el icono R.drawable.g o comenta esta línea si falla
                 Icon(
                     painter = painterResource(id = R.drawable.g),
                     contentDescription = "Google Logo",
@@ -247,10 +273,4 @@ fun MiTextField(
             )
         }
     }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewLoginScreen() {
-    PantallaLogin()
 }
