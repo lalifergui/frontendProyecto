@@ -34,16 +34,16 @@ class PrincipalViewModel : ViewModel() {
 
     private var idsParaExplorar = mutableListOf<Long>()
 
-    // 1. CARGAR LISTA (Cambio: Corregida sintaxis Dispatchers)
+    // 1. CARGAR LISTA INICIAL DE EXPLORACIÓN
     fun cargarExploracion(miId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            isLoading = true
+            withContext(Dispatchers.Main) { isLoading = true }
             try {
-                val response = api.getAllUsuarios() // Endpoint en UsuarioController
+                val response = api.getAllUsuarios()
                 if (response.isSuccessful && response.body() != null) {
                     val listaIds = response.body()!!
                         .mapNotNull { it.id }
-                        .filter { it != miId } // Excluye a Laura (ID 1)
+                        .filter { it != miId } // Excluye al usuario actual
                         .toMutableList()
 
                     listaIds.shuffle()
@@ -57,11 +57,12 @@ class PrincipalViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { isLoading = false }
+                e.printStackTrace()
             }
         }
     }
 
-    // 2. CARGAR SIGUIENTE (Cambio: Ahora descarga info real de MySQL)
+    // 2. CARGAR EL SIGUIENTE PERFIL DE LA LISTA
     fun cargarSiguientePerfil() {
         if (idsParaExplorar.isEmpty()) {
             usuarioSugerido = null
@@ -69,64 +70,73 @@ class PrincipalViewModel : ViewModel() {
             return
         }
 
+        // Sacamos el primer ID de la lista barajada
         val siguienteId = idsParaExplorar.removeAt(0)
 
         viewModelScope.launch(Dispatchers.IO) {
-            isLoading = true
+            withContext(Dispatchers.Main) { isLoading = true }
             try {
-                val perfilRes = api.getPerfil(siguienteId) //
-                val biblioRes = api.getBiblioteca(siguienteId) //
+                val perfilRes = api.getPerfil(siguienteId)
+                val biblioRes = api.getBiblioteca(siguienteId)
 
                 if (perfilRes.isSuccessful && biblioRes.isSuccessful) {
                     withContext(Dispatchers.Main) {
+                        //  CAMBIO CRÍTICO: Pasamos el ID real del usuario al mapeador
                         usuarioSugerido = PerfilUsuarioSugerido(
-                            perfil = pDTOaModelo(perfilRes.body()!!),
+                            perfil = pDTOaModelo(perfilRes.body()!!, siguienteId),
                             biblioteca = bDTOaModelo(biblioRes.body()!!)
                         )
                         isLoading = false
                     }
                 } else {
-                    cargarSiguientePerfil()
+                    // Si falla la carga de un usuario específico, intentamos con el siguiente
+                    withContext(Dispatchers.Main) { cargarSiguientePerfil() }
                 }
             } catch (e: Exception) {
-                cargarSiguientePerfil()
+                e.printStackTrace()
+                withContext(Dispatchers.Main) { cargarSiguientePerfil() }
             }
         }
     }
 
-    // 3. DAR LIKE (Cambio: Llama a la tabla de favoritos de la DB)
+    // 3. FUNCIÓN PARA DAR "LIKE" (Corazón Verde)
     fun darLike(miId: Long, favoritoId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                //  1. Petición al servidor
-                val response = RetrofitClient.usuarioApi.addFavorito(miId, favoritoId)
+                // 1. Petición al servidor (Ruta: usuarios/{id}/favoritos/{favoritoId})
+                val response = api.addFavorito(miId, favoritoId)
 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
-                        // 🎯 2. Solo si el servidor guarda, pasamos al siguiente perfil
+                        // 🎯 2. Éxito: Pasamos al siguiente perfil
+                        println("DEBUG: Favorito guardado con éxito para usuario: $favoritoId")
                         descartar()
-                        println("DEBUG: Guardado con éxito")
                     } else {
-                        println("DEBUG: Error del servidor: ${response.code()}")
+                        // Si el servidor da error (ej: 500 por recursión), lo veremos aquí
+                        println("DEBUG: Error del servidor (${response.code()}). Verifica el hashCode en el backend.")
                     }
                 }
             } catch (e: Exception) {
+                println("DEBUG: Error de red: ${e.message}")
                 e.printStackTrace()
             }
         }
     }
+
     fun descartar() {
         cargarSiguientePerfil()
     }
 
-    // Mapeadores (DTO -> Modelo)
-    private fun pDTOaModelo(dto: PerfilDTO) = Perfil(
-        perfil_id = dto.perfilId ?: 0L,
+    // --- MAPEADORES (DTO -> MODELO UI) ---
+
+    // 🎯 Mapeador corregido para inyectar el ID de Usuario en el modelo Perfil
+    private fun pDTOaModelo(dto: PerfilDTO, idUsuarioReal: Long) = Perfil(
+        perfil_id = idUsuarioReal, // Forzamos que perfil_id sea el ID que reconoce la tabla Usuarios
         nombre = dto.nombre,
         apellidos = dto.apellidos,
         fechaNacimiento = dto.fechaNacimiento,
         ciudad = dto.ciudad,
-        fotoPerfil = dto.fotoPerfil
+        fotoPerfil = dto.fotoPerfil ?: ""
     )
 
     private fun bDTOaModelo(dto: BibliotecaDTO) = Biblioteca(

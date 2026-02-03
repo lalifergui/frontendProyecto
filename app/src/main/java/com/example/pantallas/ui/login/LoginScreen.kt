@@ -64,18 +64,15 @@ fun PantallaLogin(
     // ---------------------------------------------------------------
     LaunchedEffect(loginResult) {
         if (loginResult != null) {
-            // 1. GUARDAR ID EN MEMORIA (SharedPreferences)
-            // Usamos "AppPrefs" para ser consistentes con Principal.kt
             val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
             with(sharedPref.edit()) {
-                // Asumimos que loginResult es tu objeto Usuario y tiene un campo 'id'
+                //  USA EL CAMPO 'id' QUE ES EL QUE VIENE EN TU UsuarioDTO
                 putLong("ID_USUARIO_ACTUAL", loginResult!!.id)
-                apply() // Guardar cambios
+                apply()
             }
 
-            // 2. NAVEGAR A LA PANTALLA PRINCIPAL
+            // Navegación a la principal
             val intent = Intent(context, Principal::class.java)
-            // Flags para que el usuario no pueda volver al Login con el botón "Atrás"
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             context.startActivity(intent)
         }
