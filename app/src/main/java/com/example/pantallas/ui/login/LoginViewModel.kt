@@ -53,30 +53,25 @@ class LoginViewModel : ViewModel() {
     }
 
     private fun validarPassword(input: String) {
-        _errorPassword.value = input.isNotEmpty() && input.length < 4
+        val regexPassword = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[*])(?=\\S+$).{8,}$".toRegex()
+        _errorPassword.value = input.isNotEmpty() && !regexPassword.matches(input)
     }
 
     fun login() {
         viewModelScope.launch {
             try {
                 _errorLogin.value = null
-                val request = LoginRequestDTO(email = _email.value, password = _password.value)
-
-                // Realizamos la llamada usando .login() que ahora devuelve Response<UsuarioDTO>
-                val response = RetrofitClient.usuarioApi.login(request)
+                val response = RetrofitClient.usuarioApi.login(LoginRequestDTO(_email.value, _password.value))
 
                 if (response.isSuccessful) {
-
                     _loginResult.value = response.body()
                 } else {
-
-                    _errorLogin.value = "Correo o contraseña incorrectos"
+                    //  CONTROL DE ERROR DE CREDENCIALES
+                    _errorLogin.value = "Email o contraseña incorrectos"
                     _loginResult.value = null
                 }
             } catch (e: Exception) {
-                //  ERROR DE RED (Servidor apagado, sin internet)
-                e.printStackTrace()
-                _errorLogin.value = "Error de conexión con el servidor"
+                _errorLogin.value = "Error de conexión: Verifica tu internet"
                 _loginResult.value = null
             }
         }

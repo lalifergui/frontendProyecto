@@ -23,7 +23,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -36,40 +35,36 @@ class Registrar : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-
             AppTheme(dynamicColor = false) {
-
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val viewModel: RegistroViewModel = viewModel()
-                    RegistroScreen(viewModel)
+                    RegistroScreen(viewModel())
                 }
             }
         }
     }
 }
+
 @Composable
 fun RegistroScreen(viewModel: RegistroViewModel) {
     val usuario by viewModel.usuario.collectAsState()
     val errorEmail by viewModel.errorEmail.collectAsState()
     val errorPassword by viewModel.errorPassword.collectAsState()
+    val mensajeErrorServidor by viewModel.mensajeErrorServidor.collectAsState() // 🎯 Escuchamos error de duplicado
     val botonHabilitado by viewModel.botonHabilitado.collectAsState()
-
-    // 🎯 Sincronización con el nuevo estado del ViewModel
     val usuarioIdGenerado by viewModel.usuarioIdGenerado.collectAsState()
     val estaCargando by viewModel.estaCargando.collectAsState()
 
     var passwordVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // 🎯 Escuchador de éxito: Cuando MySQL devuelve el ID, navegamos
     LaunchedEffect(usuarioIdGenerado) {
         usuarioIdGenerado?.let { id ->
             val intent = Intent(context, EditarPerfil::class.java).apply {
-                putExtra("USUARIO_ID", id) // Enviamos el ID real (ej: 9)
-                putExtra("Edicion", false) // Es un registro nuevo
+                putExtra("USUARIO_ID", id)
+                putExtra("Edicion", false)
             }
             context.startActivity(intent)
             (context as? Activity)?.finish()
@@ -86,6 +81,7 @@ fun RegistroScreen(viewModel: RegistroViewModel) {
         Text(text = "Crear Usuario", fontSize = 32.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Campo Email
         MiTextField(
             value = usuario.email,
             onValueChange = { viewModel.actualizarUsuario(usuario.copy(email = it)) },
@@ -93,10 +89,12 @@ fun RegistroScreen(viewModel: RegistroViewModel) {
             leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) }
         )
         if (errorEmail) {
-            Text(text = "Email incorrecto", color = MaterialTheme.colorScheme.error, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start).padding(start = 8.dp))
+            Text("Email inválido", color = MaterialTheme.colorScheme.error, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start).padding(start = 8.dp))
         }
+
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Campo Contraseña
         OutlinedTextField(
             value = usuario.password,
             onValueChange = { viewModel.actualizarUsuario(usuario.copy(password = it)) },
@@ -113,10 +111,21 @@ fun RegistroScreen(viewModel: RegistroViewModel) {
             singleLine = true
         )
         if (errorPassword) {
-            Text(text = "Mínimo 4 caracteres", color = MaterialTheme.colorScheme.error, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start).padding(start = 8.dp))
+            // Actualizado mensaje de requisitos
+            Text("Mínimo 8 caracteres, Mayús, Núm y '*'", color = MaterialTheme.colorScheme.error, fontSize = 11.sp, modifier = Modifier.align(Alignment.Start).padding(start = 8.dp))
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // MENSAJE DE ERROR DEL SERVIDOR (Usuario ya existe)
+        if (mensajeErrorServidor != null) {
+            Text(
+                text = mensajeErrorServidor!!,
+                color = MaterialTheme.colorScheme.error,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
 
         Button(
             onClick = { viewModel.registrar() },
