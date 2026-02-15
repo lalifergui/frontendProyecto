@@ -27,15 +27,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.modelos.Categoria
 import com.example.pantallas.modelos.Libro
 import com.example.pantallas.ui.theme.AppTheme
+import kotlinx.coroutines.launch
 
 class LibroScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // 1. Aplicas tu tema personalizado para que use tus colores y fuentes
+            // Aplicas tu tema personalizado
             AppTheme(dynamicColor = false) {
-                // 2. Surface asegura que el fondo sea el de tu tema y no blanco puro
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -61,25 +61,22 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
     val context = LocalContext.current
     val activity = context as? Activity
 
+    // --- NUEVOS ESTADOS PARA FEEDBACK VISUAL ---
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     // Obtenemos la lista de libros del ViewModel
     val libros by libroViewModel.libros.collectAsState()
 
-    // --- ESTADOS ---
+    // --- ESTADOS UI ---
     var estadoBusqueda by remember { mutableStateOf("") }
-
-    // Estados para el Diálogo de Nuevo Libro
     var mostrarDialogoNuevo by remember { mutableStateOf(false) }
     var nuevoTitulo by remember { mutableStateOf("") }
     var nuevoAutor by remember { mutableStateOf("") }
-
-    // Estados para el Desplegable de Categoría
     var expandido by remember { mutableStateOf(false) }
-    // Importante: Asegúrate de que tus categorías tengan ID (1L, 2L...)
     var categoriaSeleccionada by remember {
         mutableStateOf(Categoria.listaCategorias.firstOrNull() ?: Categoria(1L, "General"))
     }
-
-    // Estado de carga para evitar pulsar el botón dos veces
     var guardandoLibro by remember { mutableStateOf(false) }
 
     // --- LÓGICA DE FILTRADO ---
@@ -96,7 +93,6 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
     // --- FUNCIÓN CLAVE: DEVOLVER LIBRO A LA BIBLIOTECA ---
     fun devolverLibroSeleccionado(libro: Libro) {
         val intent = Intent().apply {
-            // Pasamos los datos del libro pieza por pieza
             putExtra("LIBRO_ID", libro.id)
             putExtra("LIBRO_TITULO", libro.titulo)
             putExtra("LIBRO_AUTOR", libro.autor)
@@ -136,7 +132,6 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
 
                     Text("Categoría", style = MaterialTheme.typography.labelMedium)
 
-                    // Desplegable Categoría
                     Box(modifier = Modifier.fillMaxWidth()) {
                         ExposedDropdownMenuBox(
                             expanded = expandido,
@@ -147,7 +142,9 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
                                 onValueChange = {},
                                 readOnly = true,
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandido) },
-                                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxWidth(),
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                             )
@@ -177,7 +174,6 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
                         if (nuevoTitulo.isNotBlank()) {
                             guardandoLibro = true
 
-                            // LLAMADA AL BACKEND A TRAVÉS DEL VIEWMODEL
                             libroViewModel.crearLibroManualmente(
                                 titulo = nuevoTitulo,
                                 autor = nuevoAutor,
@@ -185,20 +181,30 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
                             ) { libroCreado ->
                                 guardandoLibro = false
                                 if (libroCreado != null) {
-                                    // ÉXITO: El libro ya existe en BBDD con ID real
                                     devolverLibroSeleccionado(libroCreado)
                                     mostrarDialogoNuevo = false
                                 } else {
-                                    // ERROR: El libro no se pudo guardar
-                                    println("Error al guardar libro en servidor")
+                                    // ERROR VISUAL MEDIANTE SNACKBAR
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "Error al guardar el libro en el servidor",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
                                 }
                             }
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
-                    if(guardandoLibro) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    if (guardandoLibro) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
                     } else {
                         Text("Añadir y Seleccionar")
                     }
@@ -213,71 +219,84 @@ fun PantallaLibros(libroViewModel: LibroViewModel) {
         )
     }
 
-    // --- UI PRINCIPAL ---
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .systemBarsPadding(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(20.dp))
-        Text("Buscar Libro", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Barra de Búsqueda
-        OutlinedTextField(
-            value = estadoBusqueda,
-            onValueChange = { estadoBusqueda = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Busca el título de tu libro") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp)
-        )
-
-        // Lista de Resultados
-        LazyColumn(
+    // --- ESTRUCTURA CON SCAFFOLD PARA MANEJAR SNACKBARS ---
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
+                .fillMaxSize()
+                .padding(paddingValues) // Importante aplicar el padding del Scaffold
+                .padding(horizontal = 16.dp)
+                .systemBarsPadding(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            items(librosFiltrados) { libro ->
-                LibroFiltradoItem(libro) {
-                    // AL HACER CLIC EN UN LIBRO DE LA LISTA
-                    devolverLibroSeleccionado(libro)
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                "Buscar Libro",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Barra de Búsqueda
+            OutlinedTextField(
+                value = estadoBusqueda,
+                onValueChange = { estadoBusqueda = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Busca el título de tu libro") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            // Lista de Resultados
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                items(librosFiltrados) { libro ->
+                    LibroFiltradoItem(libro) {
+                        devolverLibroSeleccionado(libro)
+                    }
                 }
             }
-        }
 
-        Divider(modifier = Modifier.padding(vertical = 8.dp))
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Sección Inferior: Crear nuevo
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "¿No encuentras tu libro?", fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = { mostrarDialogoNuevo = true },
-                modifier = Modifier.fillMaxWidth(0.8f),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary,MaterialTheme.colorScheme.onPrimary)
-            ) {
-                Text("Añadir libro manualmente")
+            // Sección Inferior: Crear nuevo
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = "¿No encuentras tu libro?", fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = { mostrarDialogoNuevo = true },
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text("Añadir libro manualmente")
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-        // Botón Cancelar/Volver
-        Button(
-            onClick = { activity?.finish() },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
-        ) {
-            Text("Cancelar", color = Color.White, fontWeight = FontWeight.Bold)
+            // Botón Cancelar/Volver
+            Button(
+                onClick = { activity?.finish() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+            ) {
+                Text("Cancelar", color = Color.White, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }

@@ -66,25 +66,24 @@ class LibroViewModel : ViewModel() {
                     portada = "",
                     categoriaId = categoria.id
                 )
-
-                // CORRECCIÓN: Esto funcionará ahora que actualizaste LibroApi
                 val response = RetrofitClient.libroApi.crearLibro(request)
 
-                if (response.isSuccessful && response.body() != null) {
-                    val libroCreadoDTO = response.body()!!
+                // 1. Usamos una variable segura para el cuerpo
+                val body = response.body()
 
+                if (response.isSuccessful && body != null) {
+                    // 2. Creamos el libro usando el ID o un valor por
+                    // defecto (0L) si fallara
                     val libroReal = Libro(
-                        id = libroCreadoDTO.id!!,
-                        titulo = libroCreadoDTO.titulo,
-                        autor = libroCreadoDTO.autor,
-                        portada = libroCreadoDTO.portada ?: "",
+                        id = body.id ?: 0L,
+                        titulo = body.titulo,
+                        autor = body.autor,
+                        portada = body.portada ?: "",
                         categoria = categoria
                     )
-
                     _libros.value = _libros.value + libroReal
                     onResult(libroReal)
                 } else {
-                    println("Error backend: ${response.code()}")
                     onResult(null)
                 }
             } catch (e: Exception) {

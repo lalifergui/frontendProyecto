@@ -6,11 +6,12 @@ import com.example.pantallas.api.LibroApi
 import com.example.pantallas.api.UsuarioApi // Asegúrate de haber renombrado LoginApi
 import com.example.pantallas.api.BibliotecaApi
 import com.example.pantallas.api.PerfilApi
+import okhttp3.OkHttpClient
 
 
 object RetrofitClient {
     // IMPORTANTE: Si usas móvil real, usa la IP de tu compañera (ej. 192.168.1.50)
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    private const val BASE_URL = "http://10.55.230.52:8080/"
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
@@ -18,6 +19,16 @@ object RetrofitClient {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
+    val okHttpClient = OkHttpClient.Builder()
+        .addInterceptor { chain ->
+            var res = chain.proceed(chain.request())
+            var tryCount = 0
+            while (!res.isSuccessful && tryCount < 3) {
+                tryCount++
+                res = chain.proceed(chain.request())
+            }
+            res
+        }.build()
 
     // Para Login, Registro y Perfil (UsuarioController)
     val usuarioApi: UsuarioApi by lazy {

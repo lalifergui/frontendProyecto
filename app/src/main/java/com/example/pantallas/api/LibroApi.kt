@@ -13,7 +13,7 @@ interface LibroApi {
     @GET("libros")
     suspend fun getLibros(): Response<List<LibroDTO>>
 
-    // CORRECCIÓN: Ahora acepta 'LibroCreateRequest' en lugar de LibroDTO
+    //  Acepta 'LibroCreateRequest' en lugar de LibroDTO
     @POST("libros")
     suspend fun crearLibro(@Body request: LibroCreateRequest): Response<LibroDTO>
 }

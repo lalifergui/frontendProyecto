@@ -33,19 +33,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pantallas.modelos.Categoria
 import com.example.pantallas.modelos.Libro
 import com.example.pantallas.ui.libro.LibroScreen
-import com.example.pantallas.ui.perfil.Perfil // Asegúrate de importar tu Perfil correctamente
+import com.example.pantallas.ui.perfil.Perfil
 import com.example.pantallas.ui.theme.AppTheme
 
 class Biblioteca : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Habilita que el diseño use toda la pantalla (opcional pero recomendado)
         enableEdgeToEdge()
-
         setContent {
-            // 1. Aplicas tu tema personalizado
             AppTheme(dynamicColor = false) {
-                // 2. Surface asegura que el fondo sea el de tu tema (ej. color hueso/beige)
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -57,12 +53,12 @@ class Biblioteca : ComponentActivity() {
     }
 }
 
-// 1. TARJETA DE LIBRO
+// 1. TARJETA DE LIBRO (Corregida para pasar el libro actual al hacer clic)
 @Composable
 fun LibroCard(
     libro: Libro?,
     esModoEdicion: Boolean,
-    onAddClick: () -> Unit,
+    onAddClick: (Libro?) -> Unit,
     onDeleteClick: () -> Unit
 ) {
     var mostrarDialogoOpciones by remember { mutableStateOf(false) }
@@ -75,7 +71,7 @@ fun LibroCard(
             confirmButton = {
                 TextButton(onClick = {
                     mostrarDialogoOpciones = false
-                    onAddClick()
+                    onAddClick(libro) // Pasamos el libro actual para saber si es sustitución
                 }) {
                     Text(text = if (libro != null) "Cambiar" else "Añadir libro", color = Color(0xFF2196F3))
                 }
@@ -155,7 +151,7 @@ fun SeccionLibros(
     titulo: String,
     libros: List<Libro>,
     esModoEdicion: Boolean,
-    onAddLibro: () -> Unit,
+    onAddLibro: (Libro?) -> Unit,
     onDeleteLibro: (Libro) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
@@ -166,7 +162,7 @@ fun SeccionLibros(
                 LibroCard(
                     libro = libroActual,
                     esModoEdicion = esModoEdicion,
-                    onAddClick = { onAddLibro() },
+                    onAddClick = { onAddLibro(it) },
                     onDeleteClick = { if (libroActual != null) onDeleteLibro(libroActual) }
                 )
             }
@@ -174,18 +170,16 @@ fun SeccionLibros(
     }
 }
 
-// 3. PANTALLA PRINCIPAL
+// 3. PANTALLA PRINCIPAL (Con lógica de reemplazo integrada)
 @Composable
 fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
     val context = LocalContext.current
     val activity = (context as? Activity)
 
-    // RECUPERAR ID DEL USUARIO
     val usuarioId = remember {
         activity?.intent?.getLongExtra("USUARIO_ID", -1L) ?: -1L
     }
 
-    // CARGA INICIAL DE DATOS
     LaunchedEffect(Unit) {
         if (usuarioId != -1L) {
             viewModel.cargarBibliotecaReal(usuarioId)
@@ -194,7 +188,9 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
 
     var seccionSeleccionada by remember { mutableStateOf("") }
 
-    // LAUNCHER PARA AGREGAR LIBROS
+    // --- ESTADO CRÍTICO: Rastrear si estamos sustituyendo un libro ---
+    var libroParaCambiar by remember { mutableStateOf<Libro?>(null) }
+
     val launcherLibros = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -207,7 +203,15 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
 
             if (titulo.isNotEmpty()) {
                 val nuevoLibro = Libro(id, titulo, autor, "", Categoria(0, catNombre))
-                viewModel.agregarLibroAMiBiblioteca(nuevoLibro, seccionSeleccionada)
+
+                // Si libroParaCambiar no es null, ejecutamos la sustitución [cite: 52, 241]
+                val viejo = libroParaCambiar
+                if (viejo != null) {
+                    viewModel.reemplazarLibro(viejo, nuevoLibro, seccionSeleccionada)
+                    libroParaCambiar = null
+                } else {
+                    viewModel.agregarLibroAMiBiblioteca(nuevoLibro, seccionSeleccionada)
+                }
             }
         }
     }
@@ -259,13 +263,13 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
     ) {
         Text("Edita tu\nBiblioteca", fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center, modifier = Modifier.padding(vertical = 24.dp))
 
-        // CONTENIDO EDITABLE
         Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             BibliotecaContenido(
                 viewModel = viewModel,
                 esModoEdicion = true,
-                onAddLibro = { seccion ->
+                onAddLibro = { seccion, libroActual ->
                     seccionSeleccionada = seccion
+                    libroParaCambiar = libroActual // Guardamos la referencia para el reemplazo
                     val intent = Intent(context, LibroScreen::class.java)
                     launcherLibros.launch(intent)
                 },
@@ -277,7 +281,6 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // BOTONES
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -293,21 +296,18 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
                     if (!viewModel.tieneLibros) {
                         alertaObligatoriaVista = false
                     } else {
-                        // AQUÍ ES DONDE SE LLAMA AL SERVIDOR
                         viewModel.guardarCambiosEnServidor(usuarioId) {
                             val intent = Intent(context, Perfil::class.java).apply {
-                                putExtra("USUARIO_ID", usuarioId) // Pasamos el ID de vuelta
-                                //evitamos que se cree una pila infinita de pantallas
+                                putExtra("USUARIO_ID", usuarioId)
                                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                             }
-
                             context.startActivity(intent)
                             activity?.finish()
                         }
                     }
                 },
                 modifier = Modifier.weight(1f),
-                enabled = !viewModel.guardando, // Deshabilita si está guardando
+                enabled = !viewModel.guardando,
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
             ) {
@@ -322,12 +322,12 @@ fun BibliotecaScreen(viewModel: BibliotecaViewModel = viewModel()) {
     }
 }
 
-// 4. CONTENIDO COMPARTIDO (Se usa aquí y en Perfil)
+// 4. CONTENIDO COMPARTIDO
 @Composable
 fun BibliotecaContenido(
     viewModel: BibliotecaViewModel = viewModel(),
     esModoEdicion: Boolean = false,
-    onAddLibro: (String) -> Unit = {},
+    onAddLibro: (String, Libro?) -> Unit = { _, _ -> },
     onDeleteLibro: (Libro, String) -> Unit = { _, _ -> }
 ) {
     val bibliotecaData = viewModel.biblioteca
@@ -340,35 +340,27 @@ fun BibliotecaContenido(
             .clip(RoundedCornerShape(8.dp))
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-
-            // RECOMENDADOS
             SeccionLibros(
                 titulo = "Recomendados",
                 libros = bibliotecaData.librosRecomendados,
                 esModoEdicion = esModoEdicion,
-                onAddLibro = { onAddLibro("Recomendados") },
+                onAddLibro = { onAddLibro("Recomendados", it) },
                 onDeleteLibro = { libro -> onDeleteLibro(libro, "Recomendados") }
             )
-
             HorizontalDivider(color = Color.Gray.copy(alpha = 0.5f), thickness = 1.dp)
-
-            // ÚLTIMOS
             SeccionLibros(
                 titulo = "Últimos libros",
                 libros = bibliotecaData.librosLeidos,
                 esModoEdicion = esModoEdicion,
-                onAddLibro = { onAddLibro("Últimos libros") },
+                onAddLibro = { onAddLibro("Últimos libros", it) },
                 onDeleteLibro = { libro -> onDeleteLibro(libro, "Últimos libros") }
             )
-
             HorizontalDivider(color = Color.Gray.copy(alpha = 0.5f), thickness = 1.dp)
-
-            // FUTURAS
             SeccionLibros(
                 titulo = "Futuras lecturas",
                 libros = bibliotecaData.librosFuturasLecturas,
                 esModoEdicion = esModoEdicion,
-                onAddLibro = { onAddLibro("Futuras lecturas") },
+                onAddLibro = { onAddLibro("Futuras lecturas", it) },
                 onDeleteLibro = { libro -> onDeleteLibro(libro, "Futuras lecturas") }
             )
         }

@@ -25,7 +25,6 @@ class BibliotecaViewModel : ViewModel() {
 
     private val apiService = RetrofitClient.bibliotecaApi
 
-    // Estado inicial vacío
     private val BibliotecaVacia = Biblioteca(
         id = 0L,
         usuario = null,
@@ -39,7 +38,6 @@ class BibliotecaViewModel : ViewModel() {
 
     private val cambiosPendientes = mutableListOf<CambioPendiente>()
 
-    // Variable para controlar la carga
     var guardando by mutableStateOf(false)
 
     val tieneLibros: Boolean
@@ -48,14 +46,11 @@ class BibliotecaViewModel : ViewModel() {
                 biblioteca.librosFuturasLecturas.isNotEmpty()
 
     // --- CARGAR DATOS ---
-
     fun cargarBibliotecaReal(usuarioId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            // 🎯 AÑADIR: Resetear estado visual antes de empezar
             withContext(Dispatchers.Main) {
                 biblioteca = BibliotecaVacia
             }
-
             try {
                 val response = apiService.getBiblioteca(usuarioId)
                 if (response.isSuccessful && response.body() != null) {
@@ -70,8 +65,8 @@ class BibliotecaViewModel : ViewModel() {
         }
     }
 
-
     // --- GESTIÓN VISUAL DE LIBROS ---
+
     fun agregarLibroAMiBiblioteca(nuevoLibro: Libro, seccion: String) {
         val actual = biblioteca
         biblioteca = when (seccion) {
@@ -80,11 +75,30 @@ class BibliotecaViewModel : ViewModel() {
             "Futuras lecturas" -> actual.copy(librosFuturasLecturas = actual.librosFuturasLecturas + nuevoLibro)
             else -> actual
         }
-        // Guardamos el ID del libro para enviarlo luego
         cambiosPendientes.add(CambioPendiente("ADD", seccion, nuevoLibro.id))
     }
-    fun agregarLibroConOptimisticUpdate(nuevoLibro: Libro, seccion: String) {
-        agregarLibroAMiBiblioteca(nuevoLibro, seccion) // Actualiza UI inmediatamente
+
+    // CORRECCIÓN: Función de reemplazo completa
+    fun reemplazarLibro(libroViejo: Libro, libroNuevo: Libro, seccion: String) {
+        val actual = biblioteca
+
+        // 1. Actualizamos la UI reemplazando el libro en la lista correspondiente
+        biblioteca = when (seccion) {
+            "Recomendados" -> actual.copy(
+                librosRecomendados = actual.librosRecomendados.map { if (it.id == libroViejo.id) libroNuevo else it }
+            )
+            "Últimos libros" -> actual.copy(
+                librosLeidos = actual.librosLeidos.map { if (it.id == libroViejo.id) libroNuevo else it }
+            )
+            "Futuras lecturas" -> actual.copy(
+                librosFuturasLecturas = actual.librosFuturasLecturas.map { if (it.id == libroViejo.id) libroNuevo else it }
+            )
+            else -> actual
+        }
+
+        // 2. Registramos la intención en el backend: quitar el viejo y poner el nuevo
+        cambiosPendientes.add(CambioPendiente("DELETE", seccion, libroViejo.id))
+        cambiosPendientes.add(CambioPendiente("ADD", seccion, libroNuevo.id))
     }
 
     fun eliminarLibro(libro: Libro, seccion: String) {
@@ -99,8 +113,6 @@ class BibliotecaViewModel : ViewModel() {
     }
 
     // --- GUARDAR CAMBIOS ---
-// Archivo: com.example.pantallas.ui.biblioteca.BibliotecaViewModel.kt
-
     fun guardarCambiosEnServidor(usuarioId: Long, onTerminado: () -> Unit) {
         if (cambiosPendientes.isEmpty()) {
             onTerminado()
@@ -110,7 +122,6 @@ class BibliotecaViewModel : ViewModel() {
         guardando = true
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // 1. Procesamos todos los cambios pendientes en la DB
                 cambiosPendientes.forEach { cambio ->
                     try {
                         when (cambio.tipoAccion) {
@@ -129,12 +140,11 @@ class BibliotecaViewModel : ViewModel() {
                 }
                 cambiosPendientes.clear()
 
-
                 val response = apiService.getBiblioteca(usuarioId)
                 if (response.isSuccessful && response.body() != null) {
                     val nuevoModelo = mapearDTOaModelo(response.body()!!)
                     withContext(Dispatchers.Main) {
-                        biblioteca = nuevoModelo // Actualizamos el estado observable
+                        biblioteca = nuevoModelo
                         onTerminado()
                     }
                 } else {
@@ -146,8 +156,6 @@ class BibliotecaViewModel : ViewModel() {
         }
     }
 
-
-    // --- MAPEADORES ---
     private fun mapearDTOaModelo(dto: BibliotecaDTO): Biblioteca {
         return Biblioteca(
             id = 0,
@@ -163,10 +171,8 @@ class BibliotecaViewModel : ViewModel() {
             id = dto.id ?: 0L,
             titulo = dto.titulo,
             autor = dto.autor,
-            // 🎯 AÑADIR: Fallback para portadas vacías
             portada = if (dto.portada.isNullOrEmpty()) "default_book_cover" else dto.portada,
             categoria = Categoria(0, dto.categoriaNombre ?: "General")
         )
-
     }
 }
