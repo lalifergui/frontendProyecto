@@ -64,22 +64,23 @@ class FavoritosViewModel : ViewModel() {
     fun cambiarPestaña(nuevaPestaña: String) {
         pestañaActual = nuevaPestaña
     }
-    // Dentro de FavoritosViewModel.kt
-    /**
-     *     fun cargarNotificaciones(usuarioId: Long) {
-     *         viewModelScope.launch(Dispatchers.IO) {
-     *             try {
-     *                 val response = api.getNotificacionesFavoritos(usuarioId)
-     *                 if (response.isSuccessful && response.body() != null) {
-     *                     withContext(Dispatchers.Main) {
-     *                         // 🎯 Ahora esta línea funcionará sin errores rojos
-     *                         listaNotificaciones = response.body()!!
-     *                     }
-     *                 }
-     *             } catch (e: Exception) {
-     *                 e.printStackTrace()
-     *             }
-     *         }
-     *     }
-     */
+    // En FavoritosViewModel.kt
+    fun eliminarFavorito(miId: Long, favoritoId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val response = api.eliminarFavorito(miId, favoritoId) //
+
+                if (response.isSuccessful) {
+                    println("DEBUG: Borrado exitoso, recargando lista...")
+                    // 🎯 CLAVE: Volvemos a cargar los favoritos para actualizar la lista en la UI
+                    cargarFavoritos(miId) //
+                    println("DEBUG: Usuario $favoritoId eliminado de favoritos de $miId")
+                } else {
+                    println("DEBUG: Error al eliminar: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }

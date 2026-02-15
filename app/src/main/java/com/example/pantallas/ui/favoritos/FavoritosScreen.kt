@@ -18,12 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,21 +34,16 @@ import com.example.pantallas.modelos.NotificacionesFavoritos
 import com.example.pantallas.modelos.UsuariosFavoritos
 import com.example.pantallas.ui.perfil.Perfil
 import com.example.pantallas.ui.theme.AppTheme
-import com.example.pantallas.util.CardPerfil
 import com.example.pantallas.util.Menu
 
 class Favoritos : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Recuperamos el ID del usuario logueado
         val usuarioId = intent.getLongExtra("USUARIO_ID", -1L)
 
         enableEdgeToEdge()
         setContent {
-            // 1. Aplicas tu tema personalizado (asegúrate de que el nombre coincide con Theme.kt)
             AppTheme(dynamicColor = false) {
-                // 2. Surface asegura que el fondo sea el de tu tema (ej. el color que elegiste en el generador)
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -71,23 +61,15 @@ fun PantallaFavoritos(
     viewModel: FavoritosViewModel = viewModel()
 ) {
     val context = LocalContext.current
-
-    // Importar esto arriba: import androidx.lifecycle.Lifecycle
     val lifecycleOwner = LocalLifecycleOwner.current
-    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
     val state by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
-    /**
-     *  LaunchedEffect(lifecycleState) {
-     *         if (lifecycleState == Lifecycle.State.RESUMED && usuarioIdRecibido != -1L) {
-     *             viewModel.cargarFavoritos(usuarioIdRecibido)
-     *         }
-     *     }
-     */
+
     LaunchedEffect(state) {
         if (state == Lifecycle.State.RESUMED && usuarioIdRecibido != -1L) {
             viewModel.cargarFavoritos(usuarioIdRecibido)
         }
     }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -106,7 +88,7 @@ fun PantallaFavoritos(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- SELECTOR DE PESTAÑAS (Usuarios / Notificaciones) ---
+        // --- SELECTOR DE PESTAÑAS ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -134,7 +116,7 @@ fun PantallaFavoritos(
                 }
             }
 
-            Divider(color = Color(0xFFCCCCCC), modifier = Modifier.height(32.dp).width(1.dp))
+            VerticalDivider(modifier = Modifier.height(32.dp), color = Color(0xFFCCCCCC))
 
             IconButton(
                 onClick = { viewModel.cambiarPestaña("notificaciones") },
@@ -167,24 +149,26 @@ fun PantallaFavoritos(
                 "usuarios" -> {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(viewModel.listaFavoritos) { usuario ->
-                            ItemUsuario(usuarioFavorito = usuario, miId = usuarioIdRecibido)
+                            // 🎯 Pasamos el viewModel para gestionar la eliminación
+                            ItemUsuario(
+                                usuarioFavorito = usuario,
+                                miId = usuarioIdRecibido,
+                                viewModel = viewModel
+                            )
                         }
                     }
                 }
                 "notificaciones" -> {
-                    // 🎯 AÑADIMOS COLUMNA PARA EL TEXTO PREMIUM
                     Column(modifier = Modifier.fillMaxSize()) {
                         LazyColumn(modifier = Modifier.weight(1f)) {
                             items(viewModel.listaNotificaciones) { nota ->
                                 ItemNotificacion(nota)
                             }
                         }
-
-                        // MENSAJE PLAN PREMIUM
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFFFFF9C4)) // Un fondo amarillo suave de advertencia
+                                .background(Color(0xFFFFF9C4))
                                 .padding(12.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -199,13 +183,6 @@ fun PantallaFavoritos(
                         }
                     }
                 }
-                else -> {
-                    Text(
-                        text = "Selecciona una opción",
-                        modifier = Modifier.align(Alignment.Center),
-                        color = Color.Gray
-                    )
-                }
             }
         }
 
@@ -215,21 +192,55 @@ fun PantallaFavoritos(
 }
 
 @Composable
-fun ItemUsuario(usuarioFavorito: UsuariosFavoritos, miId: Long) {
+fun ItemUsuario(
+    usuarioFavorito: UsuariosFavoritos,
+    miId: Long,
+    viewModel: FavoritosViewModel
+) {
     val context = LocalContext.current
+    // 1. Estado para mostrar la ventana emergente
+    var mostrarOpciones by remember { mutableStateOf(false) }
+
+    // 2. Diálogo de opciones
+    if (mostrarOpciones) {
+        AlertDialog(
+            onDismissRequest = { mostrarOpciones = false },
+            title = { Text(text = usuarioFavorito.nombre, fontWeight = FontWeight.Bold) },
+            text = { Text(text = "¿Qué deseas hacer con este usuario?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        mostrarOpciones = false
+                        // Acción: Ver Perfil
+                        val intent = Intent(context, Perfil::class.java).apply {
+                            putExtra("USUARIO_ID", usuarioFavorito.id)
+                            putExtra("MI_PROPIO_ID", miId)
+                        }
+                        context.startActivity(intent)
+                    }
+                ) {
+                    Text("Ver perfil", color = Color(0xFF4285F4))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        mostrarOpciones = false
+                        // Acción: Eliminar
+                        viewModel.eliminarFavorito(miId, usuarioFavorito.id)
+                    }
+                ) {
+                    Text("Eliminar", color = Color.Red)
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .clickable {
-                // Al pulsar, navegamos al Perfil enviando los IDs necesarios
-                val intent = Intent(context, Perfil::class.java).apply {
-                    putExtra("USUARIO_ID", usuarioFavorito.id) // ID del ajeno
-                    putExtra("MI_PROPIO_ID", miId) // Tu ID
-                }
-                context.startActivity(intent)
-            }
+            .clickable { mostrarOpciones = true } // 🎯 Al hacer clic, mostramos el diálogo
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(12.dp),
@@ -244,10 +255,10 @@ fun ItemUsuario(usuarioFavorito: UsuariosFavoritos, miId: Long) {
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(text = usuarioFavorito.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(text = "Toca para ver su biblioteca", fontSize = 11.sp, color = Color.Gray)
+                Text(text = "Toca para gestionar", fontSize = 11.sp, color = Color.Gray)
             }
         }
-        Divider(modifier = Modifier.padding(horizontal = 12.dp), thickness = 0.5.dp)
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp), thickness = 0.5.dp)
     }
 }
 
@@ -264,5 +275,5 @@ fun ItemNotificacion(nota: NotificacionesFavoritos) {
             Text(text = nota.fecha, fontSize = 11.sp, color = Color.Gray)
         }
     }
-    Divider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp)
+    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp)
 }

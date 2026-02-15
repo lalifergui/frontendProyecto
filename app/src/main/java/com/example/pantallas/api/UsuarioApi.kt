@@ -10,6 +10,7 @@ import com.example.pantallas.data.model.UsuarioSwipeDTO
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -46,6 +47,12 @@ interface UsuarioApi {
     ): Response<String>
     @GET("usuarios")
     suspend fun getAllUsuarios(): Response<List<UsuarioDTO>>
+    // Añade esto a tu interfaz UsuarioApi
+    @DELETE("usuarios/{id}/favoritos/{favoritoId}")
+    suspend fun eliminarFavorito(
+        @Path("id") id: Long,
+        @Path("favoritoId") favoritoId: Long
+    ): Response<Void>
     @GET("usuarios/{id}/favoritos")
     suspend fun getFavoritos(@Path("id") id: Long): Response<List<UsuarioSwipeDTO>>
     @GET("usuarios/{id}/favoritos/notificaciones")
