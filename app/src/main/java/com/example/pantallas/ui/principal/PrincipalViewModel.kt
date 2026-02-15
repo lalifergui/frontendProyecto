@@ -34,7 +34,6 @@ class PrincipalViewModel : ViewModel() {
 
     private var idsParaExplorar = mutableListOf<Long>()
 
-    // 1. CARGAR LISTA INICIAL DE EXPLORACIÓN
     fun cargarExploracion(miId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             withContext(Dispatchers.Main) { isLoading = true }
@@ -43,11 +42,11 @@ class PrincipalViewModel : ViewModel() {
                 if (response.isSuccessful && response.body() != null) {
                     val listaIds = response.body()!!
                         .mapNotNull { it.id }
-                        .filter { it != miId } // Excluye al usuario actual
-                        .toMutableList()
+                        .filter { it != miId }
 
-                    listaIds.shuffle()
-                    idsParaExplorar = listaIds
+                    val listaMutable = listaIds.toMutableList()
+                    listaMutable.shuffle()
+                    idsParaExplorar = listaMutable
 
                     withContext(Dispatchers.Main) {
                         cargarSiguientePerfil()
@@ -62,7 +61,6 @@ class PrincipalViewModel : ViewModel() {
         }
     }
 
-    // 2. CARGAR EL SIGUIENTE PERFIL DE LA LISTA
     fun cargarSiguientePerfil() {
         if (idsParaExplorar.isEmpty()) {
             usuarioSugerido = null
@@ -70,7 +68,6 @@ class PrincipalViewModel : ViewModel() {
             return
         }
 
-        // Sacamos el primer ID de la lista barajada
         val siguienteId = idsParaExplorar.removeAt(0)
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -80,16 +77,21 @@ class PrincipalViewModel : ViewModel() {
                 val biblioRes = api.getBiblioteca(siguienteId)
 
                 if (perfilRes.isSuccessful && biblioRes.isSuccessful) {
-                    withContext(Dispatchers.Main) {
-                        //  CAMBIO CRÍTICO: Pasamos el ID real del usuario al mapeador
-                        usuarioSugerido = PerfilUsuarioSugerido(
-                            perfil = pDTOaModelo(perfilRes.body()!!, siguienteId),
-                            biblioteca = bDTOaModelo(biblioRes.body()!!)
-                        )
-                        isLoading = false
+                    val pDto = perfilRes.body()
+                    val bDto = biblioRes.body()
+
+                    if (pDto != null && bDto != null) {
+                        withContext(Dispatchers.Main) {
+                            usuarioSugerido = PerfilUsuarioSugerido(
+                                perfil = pDTOaModelo(pDto, siguienteId),
+                                biblioteca = bDTOaModelo(bDto)
+                            )
+                            isLoading = false
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) { cargarSiguientePerfil() }
                     }
                 } else {
-                    // Si falla la carga de un usuario específico, intentamos con el siguiente
                     withContext(Dispatchers.Main) { cargarSiguientePerfil() }
                 }
             } catch (e: Exception) {
@@ -99,25 +101,19 @@ class PrincipalViewModel : ViewModel() {
         }
     }
 
-    // 3. FUNCIÓN PARA DAR "LIKE" (Corazón Verde)
     fun darLike(miId: Long, favoritoId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // 1. Petición al servidor (Ruta: usuarios/{id}/favoritos/{favoritoId})
                 val response = api.addFavorito(miId, favoritoId)
-
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
-                        // 🎯 2. Éxito: Pasamos al siguiente perfil
                         println("DEBUG: Favorito guardado con éxito para usuario: $favoritoId")
                         descartar()
                     } else {
-                        // Si el servidor da error (ej: 500 por recursión), lo veremos aquí
-                        println("DEBUG: Error del servidor (${response.code()}). Verifica el hashCode en el backend.")
+                        println("DEBUG: Error del servidor (${response.code()})")
                     }
                 }
             } catch (e: Exception) {
-                println("DEBUG: Error de red: ${e.message}")
                 e.printStackTrace()
             }
         }
@@ -127,15 +123,15 @@ class PrincipalViewModel : ViewModel() {
         cargarSiguientePerfil()
     }
 
-    // --- MAPEADORES (DTO -> MODELO UI) ---
+    // --- MAPEADORES CORREGIDOS (ANTI-NULL) ---
 
-    // 🎯 Mapeador corregido para inyectar el ID de Usuario en el modelo Perfil
     private fun pDTOaModelo(dto: PerfilDTO, idUsuarioReal: Long) = Perfil(
-        perfil_id = idUsuarioReal, // Forzamos que perfil_id sea el ID que reconoce la tabla Usuarios
-        nombre = dto.nombre,
-        apellidos = dto.apellidos,
-        fechaNacimiento = dto.fechaNacimiento,
-        ciudad = dto.ciudad,
+        perfil_id = idUsuarioReal,
+        // 🎯 Operador Elvis (?:): Si el servidor manda null, usamos un texto por defecto
+        nombre = dto.nombre ?: "Usuario",
+        apellidos = dto.apellidos ?: "",
+        fechaNacimiento = dto.fechaNacimiento ?: "2000-01-01",
+        ciudad = dto.ciudad ?: "Desconocida",
         fotoPerfil = dto.fotoPerfil ?: ""
     )
 
@@ -149,8 +145,8 @@ class PrincipalViewModel : ViewModel() {
 
     private fun convertirLibro(dto: LibroDTO) = Libro(
         id = dto.id ?: 0L,
-        titulo = dto.titulo,
-        autor = dto.autor,
+        titulo = dto.titulo ?: "Sin título",
+        autor = dto.autor ?: "Autor desconocido",
         portada = dto.portada ?: "",
         categoria = Categoria(0, dto.categoriaNombre ?: "General")
     )

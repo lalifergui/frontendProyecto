@@ -1,10 +1,13 @@
 package com.example.pantallas.api
 
 import com.example.pantallas.data.model.BibliotecaDTO
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 interface BibliotecaApi {
@@ -31,4 +34,10 @@ interface BibliotecaApi {
 
     @DELETE("/bibliotecas/usuario/{usuarioId}/futuras/{libroId}")
     suspend fun eliminarLibroDeFuturas(@Path("usuarioId") uid: Long, @Path("libroId") lid: Long): Response<BibliotecaDTO>
+    @Multipart
+    @POST("/usuarios/{id}/foto")
+    suspend fun subirFoto(
+        @Path("id") usuarioId: Long,
+        @Part file: MultipartBody.Part
+    ): Response<String>
 }

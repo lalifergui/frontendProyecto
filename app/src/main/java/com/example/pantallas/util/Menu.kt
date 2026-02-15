@@ -20,14 +20,14 @@ import com.example.pantallas.ui.favoritos.Favoritos
 import com.example.pantallas.ui.login.Login
 import com.example.pantallas.ui.perfil.Perfil
 import com.example.pantallas.ui.principal.Principal
-
 @Composable
 fun Menu(context: Context, usuarioId: Long) {
 
-    // 1. ESTADO PARA LA ALERTA DEL CHAT
+    // 1. ESTADOS PARA LAS ALERTAS
     var mostrarAlertaMensaje by remember { mutableStateOf(false) }
+    var mostrarAlertaCerrarSesion by remember { mutableStateOf(false) } // 🎯 Nuevo estado
 
-    // 2. LÓGICA DEL POP-UP (ALERT DIALOG)
+    // 2. LÓGICA DEL POP-UP DEL CHAT
     if (mostrarAlertaMensaje) {
         AlertDialog(
             onDismissRequest = { mostrarAlertaMensaje = false },
@@ -36,6 +36,33 @@ fun Menu(context: Context, usuarioId: Long) {
             confirmButton = {
                 TextButton(onClick = { mostrarAlertaMensaje = false }) {
                     Text("Aceptar")
+                }
+            }
+        )
+    }
+
+    // 3. 🎯 LÓGICA DEL POP-UP DE CERRAR SESIÓN
+    if (mostrarAlertaCerrarSesion) {
+        AlertDialog(
+            onDismissRequest = { mostrarAlertaCerrarSesion = false },
+            title = { Text(text = "Cerrar sesión") },
+            text = { Text(text = "¿Estás seguro de que quieres cerrar sesión?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        mostrarAlertaCerrarSesion = false
+                        // Navegamos al Login y limpiamos el historial de pantallas
+                        val intent = Intent(context, Login::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        context.startActivity(intent)
+                    }
+                ) {
+                    Text("Sí, salir", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarAlertaCerrarSesion = false }) {
+                    Text("No, quedarme")
                 }
             }
         )
@@ -67,28 +94,12 @@ fun Menu(context: Context, usuarioId: Long) {
             }
         )
 
-        // --- BOTÓN CHAT (NUEVO) ---
+        // --- BOTÓN CHAT ---
         NavigationBarItem(
             icon = { Icon(Icons.Filled.MailOutline, contentDescription = "Chat") },
             selected = false,
-            onClick = {
-                // Al hacer click, activamos la alerta en lugar de navegar
-                mostrarAlertaMensaje = true
-            }
+            onClick = { mostrarAlertaMensaje = true }
         )
-
-        /**
-         *    // --- BOTÓN BIBLIOTECA ---
-         *         NavigationBarItem(
-         *             icon = { Icon(Icons.Filled.MenuBook, contentDescription = "Biblioteca") },
-         *             selected = false,
-         *             onClick = {
-         *                 val intent = Intent(context, Biblioteca::class.java)
-         *                 intent.putExtra("USUARIO_ID", usuarioId)
-         *                 context.startActivity(intent)
-         *             }
-         *         )
-         */
 
         // --- BOTÓN PERFIL ---
         NavigationBarItem(
@@ -100,16 +111,15 @@ fun Menu(context: Context, usuarioId: Long) {
                 context.startActivity(intent)
             }
         )
-        //Botón cerrar sesión
+
+        // --- BOTÓN CERRAR SESIÓN CORREGIDO ---
         NavigationBarItem(
             icon = { Icon(Icons.Filled.Output, contentDescription = "Cerrar Sesión") },
             selected = false,
             onClick = {
-                val intent = Intent(context, Login::class.java)
-                intent.putExtra("USUARIO_ID", usuarioId)
-                context.startActivity(intent)
+                // En lugar de navegar directo, mostramos el diálogo
+                mostrarAlertaCerrarSesion = true
             }
         )
-
     }
 }

@@ -7,10 +7,13 @@ import com.example.pantallas.data.model.PerfilDTO
 import com.example.pantallas.data.model.BibliotecaDTO
 import com.example.pantallas.data.model.NotificacionesFavoritos
 import com.example.pantallas.data.model.UsuarioSwipeDTO
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 interface UsuarioApi {
@@ -35,6 +38,12 @@ interface UsuarioApi {
         @Path("id") id: Long,
         @Path("favoritoId") favoritoId: Long
     ): Response<Void>
+    @Multipart
+    @POST("usuarios/{id}/upload-foto")
+    suspend fun subirFotoPerfil(
+        @Path("id") id: Long,
+        @Part file: MultipartBody.Part
+    ): Response<String>
     @GET("usuarios")
     suspend fun getAllUsuarios(): Response<List<UsuarioDTO>>
     @GET("usuarios/{id}/favoritos")

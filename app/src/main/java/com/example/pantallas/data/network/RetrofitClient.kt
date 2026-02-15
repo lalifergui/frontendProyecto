@@ -10,9 +10,8 @@ import okhttp3.OkHttpClient
 
 
 object RetrofitClient {
-    // IMPORTANTE: Si usas móvil real, usa la IP de tu compañera (ej. 192.168.1.50)
-    private const val BASE_URL = "http://10.55.230.52:8080/"
-
+    // Cambia esto
+    private const val BASE_URL = "http://10.0.2.2:8080/"
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)

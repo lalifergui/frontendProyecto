@@ -5,6 +5,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,10 +19,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage // <--- Asegúrate de tener Coil importado
+import coil.compose.AsyncImage
 import com.example.pantallas.modelos.Perfil
 
-// AHORA ACEPTAMOS 'foto' AQUÍ vvvvv
+/**
+ * Componente reutilizable para mostrar la "Carta de Presentación" del usuario.
+ * Se usa en Perfil, Editar Perfil y Perfil Ajeno (Favoritos).
+ */
 @Composable
 fun CardPerfil(perfil: Perfil, foto: String? = null) {
 
@@ -31,65 +37,65 @@ fun CardPerfil(perfil: Perfil, foto: String? = null) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .background(FondoCardColor, shape = RoundedCornerShape(10.dp))
-            .padding(vertical = 8.dp, horizontal = 12.dp),
+            .padding(vertical = 10.dp, horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
         // 1. Círculo de Foto de Perfil
         Box(
             modifier = Modifier
-                .size(68.dp) // Tamaño ajustado para verse bien
+                .size(70.dp)
                 .clip(CircleShape)
                 .background(Color.White)
                 .border(2.dp, TextoCardColor, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            // LÓGICA: Si llega foto, la pintamos. Si no, texto.
             if (!foto.isNullOrEmpty()) {
+                // Imagen real con Coil
                 AsyncImage(
                     model = foto,
-                    contentDescription = "Foto Perfil",
+                    contentDescription = "Foto de perfil de ${perfil.nombre}",
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop // Evita que la foto se estire
                 )
             } else {
-                Text(
-                    text = "Foto",
-                    color = Color.Black,
-                    fontSize = 12.sp
+                // Icono por defecto si no hay foto
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Sin foto",
+                    modifier = Modifier.size(40.dp),
+                    tint = Color.Gray
                 )
             }
         }
 
-        Spacer(modifier = Modifier.size(12.dp))
+        Spacer(modifier = Modifier.width(16.dp))
 
-        // 2. Columna de Datos
+        // 2. Columna de Datos Personales
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = "${perfil.nombre} ${perfil.apellidos}",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
                 color = TextoCardColor,
-                lineHeight = 16.sp,
+                lineHeight = 18.sp,
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Edad: ${perfil.fechaNacimiento}",
-                fontSize = 12.sp,
-                color = TextoCardColor
+                text = "Fecha nac: ${perfil.fechaNacimiento}",
+                fontSize = 13.sp,
+                color = TextoCardColor.copy(alpha = 0.9f)
             )
-
-            Spacer(modifier = Modifier.height(2.dp))
 
             Text(
                 text = "Ciudad: ${perfil.ciudad}",
-                fontSize = 12.sp,
-                color = TextoCardColor
+                fontSize = 13.sp,
+                color = TextoCardColor.copy(alpha = 0.9f)
             )
         }
     }

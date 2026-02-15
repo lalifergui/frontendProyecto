@@ -2,21 +2,16 @@ package com.example.pantallas.modelos
 
 import Usuario
 
-// Asegúrate de que la clase Usuario también esté en este paquete.
-// Si no, necesitarás: import com.example.pantallas.modelos.Usuario
-
 data class Perfil(
     val perfil_id: Long = 0L,
-    val nombre: String,
-    val apellidos: String,
-    val fechaNacimiento: String,
-    val ciudad: String,
-    val fotoPerfil: String? = null, // Esta es la variable clave para la foto
+    val nombre: String = "Usuario",       // 🎯 Valor por defecto si llega null
+    val apellidos: String = "",           // 🎯 Evita el NullPointerException
+    val fechaNacimiento: String = "",
+    val ciudad: String = "",
+    val fotoPerfil: String? = null,
     val usuario: Usuario? = null
 ) {
-    // Objeto de ejemplo para pruebas y ViewModels
     companion object {
-
         val UsuarioEjemplo = Usuario(
             usuario_id = 99L,
             email = "carlos95@example.com",
@@ -31,7 +26,7 @@ data class Perfil(
             apellidos = "García López",
             fechaNacimiento = "1995-10-25",
             ciudad = "Madrid",
-            fotoPerfil = null, // Añadido explícitamente para claridad
+            fotoPerfil = null,
             usuario = UsuarioEjemplo
         )
     }
