@@ -53,6 +53,8 @@ interface UsuarioApi {
         @Path("id") id: Long,
         @Path("favoritoId") favoritoId: Long
     ): Response<Void>
+    @POST("usuarios/login-google")
+    suspend fun loginGoogle(@Body idToken: String): Response<UsuarioDTO>
     @GET("usuarios/match/categoria/{nombre}")
     suspend fun buscarPorCategoria(
         @Path("nombre") nombreCategoria: String

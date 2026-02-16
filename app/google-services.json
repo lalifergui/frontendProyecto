@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "9686794655",
+    "project_id": "biblioswipe-56fcc",
+    "storage_bucket": "biblioswipe-56fcc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:9686794655:android:59ac10dc2f9245c24a7daa",
+        "android_client_info": {
+          "package_name": "com.example.pantallas"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwCZulcLUU-oduIjO0gAlNtxUns22wvd8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

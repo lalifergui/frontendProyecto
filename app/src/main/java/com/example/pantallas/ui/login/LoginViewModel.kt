@@ -56,6 +56,23 @@ class LoginViewModel : ViewModel() {
         val regexPassword = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[*])(?=\\S+$).{8,}$".toRegex()
         _errorPassword.value = input.isNotEmpty() && !regexPassword.matches(input)
     }
+    fun loginConGoogle(idToken: String) {
+        viewModelScope.launch {
+            try {
+                _errorLogin.value = null
+                // Enviamos el token al servidor de Sandra
+                val response = RetrofitClient.usuarioApi.loginGoogle(idToken)
+
+                if (response.isSuccessful) {
+                    _loginResult.value = response.body()
+                } else {
+                    _errorLogin.value = "Error al autenticar con Google en el servidor"
+                }
+            } catch (e: Exception) {
+                _errorLogin.value = "Error de conexión: Verifica tu internet"
+            }
+        }
+    }
 
     fun login() {
         viewModelScope.launch {

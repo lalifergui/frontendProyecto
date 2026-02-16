@@ -4,6 +4,12 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+
+import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -36,6 +42,7 @@ import com.example.pantallas.ui.registro.Registrar
 import com.example.pantallas.ui.principal.Principal
 import com.example.pantallas.R
 import com.example.pantallas.ui.theme.AppTheme
+import kotlinx.coroutines.launch
 
 class Login : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,20 +72,55 @@ fun PantallaLogin(
     onRegisterClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val loginResult by viewModel.loginResult.collectAsState()
-    // 🎯 Capturamos el error de "Email o contraseña incorrectos"
     val errorLogin by viewModel.errorLogin.collectAsState()
 
-    // Manejo de éxito en el login
+    // 1. Inicializar Credential Manager
+    val credentialManager = CredentialManager.create(context)
+
+    // Lógica para lanzar el selector de cuentas de Google
+    val onGoogleLoginClick = {
+        scope.launch {
+            // Configurar la petición de Google ID
+            val googleIdOption = GetGoogleIdOption.Builder()
+                .setFilterByAuthorizedAccounts(false)
+                .setServerClientId("9686794655-jk0t14utjhcjde55608q5hnuv61jaq9d.apps.googleusercontent.com")
+                .build()
+
+            val request = GetCredentialRequest.Builder()
+                .addCredentialOption(googleIdOption)
+                .build()
+
+            try {
+                // 1. Obtener la credencial del selector
+                val result = credentialManager.getCredential(context, request)
+                val receivedCredential = result.credential
+
+                // 2. Verificar que sea una credencial de Google ID Token
+                if (receivedCredential is androidx.credentials.CustomCredential &&
+                    receivedCredential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+
+                    //  AQUÍ ESTÁ LA CORRECCIÓN:
+                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(receivedCredential.data)
+                    val idToken = googleIdTokenCredential.idToken
+
+                    // 3. Enviar al ViewModel
+                    viewModel.loginConGoogle(idToken)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     LaunchedEffect(loginResult) {
         loginResult?.let { usuario ->
             val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
             with(sharedPref.edit()) {
-                // Guardamos el ID real del usuario
                 putLong("ID_USUARIO_ACTUAL", usuario.id)
                 apply()
             }
-
             val intent = Intent(context, Principal::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             context.startActivity(intent)
@@ -89,7 +131,8 @@ fun PantallaLogin(
     LoginScreen(
         viewModel = viewModel,
         onRegisterClick = onRegisterClick,
-        errorMessageFromServer = errorLogin // Pasamos el error a la UI
+        onGoogleClick = { onGoogleLoginClick() }, // Vinculamos la nueva lógica
+        errorMessageFromServer = errorLogin
     )
 }
 

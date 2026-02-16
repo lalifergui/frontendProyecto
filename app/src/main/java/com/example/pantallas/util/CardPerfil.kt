@@ -21,16 +21,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.pantallas.modelos.Perfil
+import java.time.LocalDate
+import java.time.Period
 
 /**
- * Componente reutilizable para mostrar la "Carta de Presentación" del usuario.
- * Se usa en Perfil, Editar Perfil y Perfil Ajeno (Favoritos).
+ * Componente reutilizable para mostrar la "Carta de Presentación".
+ * Calcula la EDAD a partir de la fecha de nacimiento que guardamos en Editar Perfil.
  */
 @Composable
 fun CardPerfil(perfil: Perfil, foto: String? = null) {
 
     val FondoCardColor = MaterialTheme.colorScheme.primary
     val TextoCardColor = MaterialTheme.colorScheme.onPrimary
+
+    // 🎯 CÁLCULO DE EDAD: De "1995-05-15" a "30 años"
+    val edadCalculada = try {
+        if (perfil.fechaNacimiento.isNotBlank()) {
+            val fechaNac = LocalDate.parse(perfil.fechaNacimiento)
+            val hoy = LocalDate.now()
+            val anios = Period.between(fechaNac, hoy).years
+            "$anios años"
+        } else {
+            "Edad no indicada"
+        }
+    } catch (e: Exception) {
+        "Fecha no válida"
+    }
 
     Row(
         modifier = Modifier
@@ -40,8 +56,7 @@ fun CardPerfil(perfil: Perfil, foto: String? = null) {
             .padding(vertical = 10.dp, horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-        // 1. Círculo de Foto de Perfil
+        // 1. Círculo de Foto
         Box(
             modifier = Modifier
                 .size(70.dp)
@@ -50,52 +65,43 @@ fun CardPerfil(perfil: Perfil, foto: String? = null) {
                 .border(2.dp, TextoCardColor, CircleShape),
             contentAlignment = Alignment.Center
         ) {
+            // Usamos la foto que nos pasan (que ya trae la URL completa del PerfilViewModel)
             if (!foto.isNullOrEmpty()) {
-                // Imagen real con Coil
                 AsyncImage(
                     model = foto,
-                    contentDescription = "Foto de perfil de ${perfil.nombre}",
+                    contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop // Evita que la foto se estire
+                    contentScale = ContentScale.Crop
                 )
             } else {
-                // Icono por defecto si no hay foto
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Sin foto",
-                    modifier = Modifier.size(40.dp),
-                    tint = Color.Gray
-                )
+                Icon(Icons.Default.Person, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(40.dp))
             }
         }
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // 2. Columna de Datos Personales
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.Center
-        ) {
+        // 2. Datos (Nombre y EDAD)
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = "${perfil.nombre} ${perfil.apellidos}",
-                fontSize = 16.sp,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextoCardColor,
-                lineHeight = 18.sp,
+                color = TextoCardColor
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
+            //  AQUÍ SALE LA EDAD CALCULADA
             Text(
-                text = "Fecha nac: ${perfil.fechaNacimiento}",
-                fontSize = 13.sp,
+                text = edadCalculada,
+                fontSize = 14.sp,
                 color = TextoCardColor.copy(alpha = 0.9f)
             )
 
             Text(
                 text = "Ciudad: ${perfil.ciudad}",
                 fontSize = 13.sp,
-                color = TextoCardColor.copy(alpha = 0.9f)
+                color = TextoCardColor.copy(alpha = 0.8f)
             )
         }
     }
