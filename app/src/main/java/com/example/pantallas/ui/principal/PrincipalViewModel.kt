@@ -34,6 +34,7 @@ class PrincipalViewModel : ViewModel() {
 
     private var idsParaExplorar = mutableListOf<Long>()
 
+    // Carga inicial aleatoria (aquí sí usamos shuffle)
     fun cargarExploracion(miId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             withContext(Dispatchers.Main) { isLoading = true }
@@ -45,7 +46,7 @@ class PrincipalViewModel : ViewModel() {
                         .filter { it != miId }
 
                     val listaMutable = listaIds.toMutableList()
-                    listaMutable.shuffle()
+                    listaMutable.shuffle() // Aleatorio para la exploración general
                     idsParaExplorar = listaMutable
 
                     withContext(Dispatchers.Main) {
@@ -57,6 +58,36 @@ class PrincipalViewModel : ViewModel() {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { isLoading = false }
                 e.printStackTrace()
+            }
+        }
+    }
+
+    // Filtrado inteligente por categoría
+    fun filtrarPorCategoria(categoria: String, miId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) { isLoading = true }
+            try {
+                // 🎯 Llamamos al endpoint de Sandra que ya devuelve la lista ORDENADA
+                val response = api.buscarPorCategoria(categoria)
+
+                if (response.isSuccessful && response.body() != null) {
+                    val listaIds = response.body()!!
+                        .mapNotNull { it.id }
+                        .filter { it != miId }
+                        .toMutableList()
+
+                    // ❌ ELIMINADO listaIds.shuffle()
+                    // Mantenemos el orden del servidor: Jose(3) -> Sandra(1) -> Juan(0)
+                    idsParaExplorar = listaIds
+
+                    withContext(Dispatchers.Main) {
+                        cargarSiguientePerfil()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                withContext(Dispatchers.Main) { isLoading = false }
             }
         }
     }
@@ -123,11 +154,9 @@ class PrincipalViewModel : ViewModel() {
         cargarSiguientePerfil()
     }
 
-    // --- MAPEADORES CORREGIDOS (ANTI-NULL) ---
 
     private fun pDTOaModelo(dto: PerfilDTO, idUsuarioReal: Long) = Perfil(
         perfil_id = idUsuarioReal,
-        // 🎯 Operador Elvis (?:): Si el servidor manda null, usamos un texto por defecto
         nombre = dto.nombre ?: "Usuario",
         apellidos = dto.apellidos ?: "",
         fechaNacimiento = dto.fechaNacimiento ?: "2000-01-01",

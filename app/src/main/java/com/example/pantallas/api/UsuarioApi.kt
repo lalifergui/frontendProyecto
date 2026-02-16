@@ -53,6 +53,10 @@ interface UsuarioApi {
         @Path("id") id: Long,
         @Path("favoritoId") favoritoId: Long
     ): Response<Void>
+    @GET("usuarios/match/categoria/{nombre}")
+    suspend fun buscarPorCategoria(
+        @Path("nombre") nombreCategoria: String
+    ): Response<List<UsuarioDTO>>
     @GET("usuarios/{id}/favoritos")
     suspend fun getFavoritos(@Path("id") id: Long): Response<List<UsuarioSwipeDTO>>
     @GET("usuarios/{id}/favoritos/notificaciones")

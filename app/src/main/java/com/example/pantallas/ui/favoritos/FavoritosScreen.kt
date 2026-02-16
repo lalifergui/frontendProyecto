@@ -16,8 +16,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.room.Delete
 import com.example.pantallas.modelos.NotificacionesFavoritos
 import com.example.pantallas.modelos.UsuariosFavoritos
 import com.example.pantallas.ui.perfil.Perfil
@@ -198,39 +201,28 @@ fun ItemUsuario(
     viewModel: FavoritosViewModel
 ) {
     val context = LocalContext.current
-    // 1. Estado para mostrar la ventana emergente
-    var mostrarOpciones by remember { mutableStateOf(false) }
+    // Estado para el diálogo de confirmación de borrado
+    var mostrarConfirmacionBorrar by remember { mutableStateOf(false) }
 
-    // 2. Diálogo de opciones
-    if (mostrarOpciones) {
+    // --- 1. DIÁLOGO DE CONFIRMACIÓN DE ELIMINACIÓN ---
+    if (mostrarConfirmacionBorrar) {
         AlertDialog(
-            onDismissRequest = { mostrarOpciones = false },
-            title = { Text(text = usuarioFavorito.nombre, fontWeight = FontWeight.Bold) },
-            text = { Text(text = "¿Qué deseas hacer con este usuario?") },
+            onDismissRequest = { mostrarConfirmacionBorrar = false },
+            title = { Text(text = "Eliminar favorito", fontWeight = FontWeight.Bold) },
+            text = { Text(text = "¿Estás seguro de que quieres eliminar a ${usuarioFavorito.nombre} de tu lista de favoritos?") },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        mostrarOpciones = false
-                        // Acción: Ver Perfil
-                        val intent = Intent(context, Perfil::class.java).apply {
-                            putExtra("USUARIO_ID", usuarioFavorito.id)
-                            putExtra("MI_PROPIO_ID", miId)
-                        }
-                        context.startActivity(intent)
-                    }
-                ) {
-                    Text("Ver perfil", color = Color(0xFF4285F4))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        mostrarOpciones = false
-                        // Acción: Eliminar
+                        mostrarConfirmacionBorrar = false
                         viewModel.eliminarFavorito(miId, usuarioFavorito.id)
                     }
                 ) {
-                    Text("Eliminar", color = Color.Red)
+                    Text("Sí, eliminar", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarConfirmacionBorrar = false }) {
+                    Text("Cancelar")
                 }
             }
         )
@@ -240,22 +232,58 @@ fun ItemUsuario(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .clickable { mostrarOpciones = true } // 🎯 Al hacer clic, mostramos el diálogo
+        // Ya no es clickable toda la fila para evitar errores
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Avatar circular
             Box(
-                modifier = Modifier.size(40.dp).background(Color(0xFFE0E0E0), CircleShape),
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color(0xFFE0E0E0), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.Person, contentDescription = null, tint = Color.Gray)
             }
+
             Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(text = usuarioFavorito.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(text = "Toca para gestionar", fontSize = 11.sp, color = Color.Gray)
+
+            // Nombre del usuario (ocupa el espacio central)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = usuarioFavorito.nombre,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+                Text(text = "Favorito", fontSize = 11.sp, color = Color.Gray)
+            }
+
+            // --- 2. ICONO VER PERFIL (EL OJO) ---
+            IconButton(onClick = {
+                val intent = Intent(context, Perfil::class.java).apply {
+                    putExtra("USUARIO_ID", usuarioFavorito.id)
+                    putExtra("MI_PROPIO_ID", miId)
+                }
+                context.startActivity(intent)
+            }) {
+                Icon(
+                    imageVector = Icons.Filled.RemoveRedEye,
+                    contentDescription = "Ver Perfil",
+                    tint = Color(0xFF4285F4) // Azul
+                )
+            }
+
+            // --- 3. ICONO ELIMINAR (LA BASURA) ---
+            IconButton(onClick = { mostrarConfirmacionBorrar = true }) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "Eliminar",
+                    tint = Color(0xFFEA4335) // Rojo
+                )
             }
         }
         HorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp), thickness = 0.5.dp)

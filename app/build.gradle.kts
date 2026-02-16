@@ -64,6 +64,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.room.common.jvm)
 
     // Testeo
     testImplementation(libs.junit)

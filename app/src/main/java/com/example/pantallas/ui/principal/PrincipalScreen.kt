@@ -32,9 +32,7 @@ class Principal : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // 1. Aplicas tu tema personalizado para unificar la estética
             AppTheme(dynamicColor = false) {
-                // 2. Surface aplica el color de fondo y contenido base del tema
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -45,6 +43,7 @@ class Principal : ComponentActivity() {
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrincipalScreen(
@@ -76,16 +75,14 @@ fun PrincipalScreen(
         }
     }
 
-    // 3. ESTRUCTURA DE CAPAS (Box para fijar el menú)
+    // 3. ESTRUCTURA DE CAPAS
     Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
 
-        // CAPA 1: CONTENIDO DESPLAZABLE (Scroll)
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
                 .padding(horizontal = 20.dp)
-                // Margen inferior para que el menú no tape los botones de acción
                 .padding(bottom = 90.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -97,7 +94,7 @@ fun PrincipalScreen(
                 modifier = Modifier.padding(vertical = 12.dp)
             )
 
-            // Selector de Categoría
+            // Selector de Categoría (Dropdown corregido)
             Box(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
                 ExposedDropdownMenuBox(
                     expanded = expandido,
@@ -123,6 +120,14 @@ fun PrincipalScreen(
                                 onClick = {
                                     categoriaSeleccionada = categoria
                                     expandido = false
+
+                                    // 🎯 LÓGICA DE FILTRADO ACTIVA
+                                    if (categoria.nombre == "Todas") {
+                                        principalViewModel.cargarExploracion(usuarioIdLogueado)
+                                    } else {
+                                        // Llamamos al endpoint de Sandra filtrando por el nombre
+                                        principalViewModel.filtrarPorCategoria(categoria.nombre, usuarioIdLogueado)
+                                    }
                                 }
                             )
                         }
@@ -145,7 +150,6 @@ fun PrincipalScreen(
 
                     Spacer(Modifier.height(12.dp))
 
-                    // Lógica de Biblioteca Vacía o con Libros
                     if (bibliotecaSugeridoViewModel.tieneLibros) {
                         BibliotecaContenido(
                             viewModel = bibliotecaSugeridoViewModel,
@@ -167,7 +171,7 @@ fun PrincipalScreen(
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Botones de Swipe (X y Corazón)
+                    // Botones de Swipe
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                         Icon(
                             painter = painterResource(id = R.drawable.libro_x),
@@ -175,16 +179,13 @@ fun PrincipalScreen(
                             modifier = Modifier.size(45.dp).clickable { principalViewModel.descartar() },
                             tint = Color.Unspecified
                         )
-                        // Dentro de la Row de botones en PrincipalScreen (image_3614f6)
                         Icon(
-                            painter = painterResource(id = R.drawable.libro_tick), // Tu corazón verde
+                            painter = painterResource(id = R.drawable.libro_tick),
                             contentDescription = "Like",
                             modifier = Modifier
                                 .size(45.dp)
                                 .clickable {
-                                    val sugerido = principalViewModel.usuarioSugerido
-                                    if (sugerido != null && usuarioIdLogueado != -1L) {
-                                        //  Llama a la función que persiste en MySQL
+                                    if (usuarioIdLogueado != -1L) {
                                         principalViewModel.darLike(usuarioIdLogueado, sugerido.perfil.perfil_id)
                                     }
                                 },
@@ -194,14 +195,15 @@ fun PrincipalScreen(
                 }
             } else {
                 Text(
-                    "No hay más lectores disponibles.",
+                    "No hay más lectores disponibles con estos gustos.",
                     color = Color.Gray,
-                    modifier = Modifier.padding(top = 100.dp)
+                    modifier = Modifier.padding(top = 100.dp),
+                    textAlign = TextAlign.Center
                 )
             }
         }
 
-        // CAPA 2: MENÚ ESTÁTICO (Fijado al fondo del Box)
+        // CAPA 2: MENÚ ESTÁTICO
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
